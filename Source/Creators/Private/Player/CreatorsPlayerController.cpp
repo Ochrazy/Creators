@@ -19,6 +19,7 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 	PrimaryActorTick.bCanEverTick = true;
 	bHidden = false;
 	bShowMouseCursor = true;
+	
 }
 
 void ACreatorsPlayerController::SetupInputComponent()
@@ -40,7 +41,6 @@ void ACreatorsPlayerController::SetupInputComponent()
 
 	FInputActionBinding& ToggleInGameMenuBinding = InputComponent->BindAction("InGameMenu", IE_Pressed, this, &ACreatorsPlayerController::OnToggleInGameMenu);
 	ToggleInGameMenuBinding.bExecuteWhenPaused = true;
-
 }
 
 void ACreatorsPlayerController::GetAudioListenerPosition(FVector& OutLocation, FVector& OutFrontDir, FVector& OutRightDir)
