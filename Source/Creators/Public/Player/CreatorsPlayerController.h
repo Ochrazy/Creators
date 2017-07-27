@@ -28,6 +28,10 @@ protected:
 	/** update input detection */
 	virtual void ProcessPlayerInput(const float DeltaTime, const bool bGamePaused) override;
 	virtual void SetupInputComponent() override;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 	// End PlayerController interface
 
 public:
@@ -66,11 +70,19 @@ public:
 	/** Handler for mouse release over minimap. */
 	void MouseReleasedOverMinimap();
 
+	void UpdateResourcesUI();
+
+	void ShowBuildingUI();
+	void ShowBuildUI();
+
+	void AddResources(int numResources);
+
 protected:
 	/** if set, input and camera updates will be ignored */
 	uint8 bIgnoreInput : 1;
 
 	/** currently selected actor */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Building)
 	TWeakObjectPtr<AActor> SelectedActor;
 
 	/** Swipe anchor. */
@@ -83,7 +95,7 @@ protected:
 
 	/** Custom input handler. */
 	UPROPERTY()
-		class UCreatorsInput* InputHandler;
+	class UCreatorsInput* InputHandler;
 
 	/**
 	* Change current selection (on toggle on the same).
@@ -110,11 +122,26 @@ protected:
 	*/
 	virtual void GetAudioListenerPosition(FVector& Location, FVector& FrontDir, FVector& RightDir) override;
 
+	/* Hud Widget*/
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UHudWidget> HudWidgetBP;
+
+	int NumResources;
+
+	bool bBuildingMode;
+
+	TWeakObjectPtr<class ABuilding> BuildingToPlace;
+
+	void EnterBuildingMode(ABuilding* buildingToBePlacedClass);
+
 private:
 	/** Helper to return cast version of Spectator pawn. */
 	ACreatorsSpectatorPawn* GetCreatorsSpectatorPawn() const;
 
 	/** Helper to return camera component via spectator pawn. */
 	UCreatorsCameraComponent* GetCameraComponent() const;
+
+	/** Hud Widget */
+	class UHudWidget* HudWidget;
 	
 };

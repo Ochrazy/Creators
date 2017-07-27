@@ -9,6 +9,8 @@
 #include "CreatorsInputInterface.h"
 #include "CreatorsGameState.h"
 #include "CreatorsGameMode.h"
+#include "Building.h"
+#include "UI/HudWidget.h"
 
 
 ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -19,7 +21,9 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 	PrimaryActorTick.bCanEverTick = true;
 	bHidden = false;
 	bShowMouseCursor = true;
-	
+
+	NumResources = 0;
+	bBuildingMode = false;
 }
 
 void ACreatorsPlayerController::SetupInputComponent()
@@ -42,6 +46,21 @@ void ACreatorsPlayerController::SetupInputComponent()
 	FInputActionBinding& ToggleInGameMenuBinding = InputComponent->BindAction("InGameMenu", IE_Pressed, this, &ACreatorsPlayerController::OnToggleInGameMenu);
 	ToggleInGameMenuBinding.bExecuteWhenPaused = true;
 }
+
+// Called when the game starts or when spawned
+void ACreatorsPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HudWidgetBP)
+	{
+		//Creating our widget and adding it to our viewport
+		HudWidget = CreateWidget<UHudWidget>(this, HudWidgetBP);
+
+		HudWidget->AddToViewport();
+	}
+}
+
 
 void ACreatorsPlayerController::GetAudioListenerPosition(FVector& OutLocation, FVector& OutFrontDir, FVector& OutRightDir)
 {
@@ -212,6 +231,7 @@ void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, fl
 	{
 		ICreatorsInputInterface::Execute_OnInputTap(HitActor);
 	}
+
 }
 
 void ACreatorsPlayerController::OnHoldPressed(const FVector2D& ScreenPosition, float DownTime)
@@ -380,4 +400,35 @@ void ACreatorsPlayerController::MouseReleasedOverMinimap()
 	{
 		GetCameraComponent()->EndSwipeNow();
 	}
+}
+
+void ACreatorsPlayerController::UpdateResourcesUI()
+{
+	HudWidget->UpdateResourcesText(NumResources);
+}
+
+void ACreatorsPlayerController::AddResources(int numResources)
+{
+	NumResources += numResources;
+
+	UpdateResourcesUI();
+}
+
+void ACreatorsPlayerController::EnterBuildingMode(ABuilding* buildingToBePlacedClass)
+{
+	const FTransform transf = FTransform(FVector(0.0, 0.0, -9000.0));
+	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(FVector(0.0, 0.0, -9000.0), FRotator(0.0));
+
+	BuildingToPlace->SetActorEnableCollision(false);
+	bBuildingMode = true;
+}
+
+void ACreatorsPlayerController::ShowBuildingUI()
+{
+	HudWidget->ShowBuildingWidget();
+}
+
+void ACreatorsPlayerController::ShowBuildUI()
+{
+	HudWidget->ShowBuildWidget();
 }
