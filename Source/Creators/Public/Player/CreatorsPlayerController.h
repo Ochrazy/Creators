@@ -70,19 +70,16 @@ public:
 	/** Handler for mouse release over minimap. */
 	void MouseReleasedOverMinimap();
 
-	void UpdateResourcesUI();
-
-	void ShowBuildingUI();
-	void ShowBuildUI();
-
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void HandleOnClickedCollectorBaseButton();
 
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void HandleOnClickedCollectorButton();
 
-	void AddResources(int numResources);
+	void AddResources(int inNumResources);
 	void EnterBuildingMode();
+
+	class UHudWidget* GetHudWidget() const;
 
 protected:
 	/** if set, input and camera updates will be ignored */

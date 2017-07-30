@@ -4,6 +4,7 @@
 #include "CollectorBase.h"
 #include "Collector.h"
 #include "CreatorsPlayerController.h"
+#include "HudWidget.h"
 
 // Sets default values
 ACollectorBase::ACollectorBase()
@@ -22,18 +23,25 @@ ACollectorBase::ACollectorBase()
 void ACollectorBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	const ACreatorsPlayerController* cpController = Cast<ACreatorsPlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
+	HudWidget = (cpController) ? Cast<UHudWidget>(cpController->GetHudWidget()) : NULL;
 }
 
-void ACollectorBase::OnSelected(ETouchIndex::Type type, UPrimitiveComponent* pComponent)
+bool ACollectorBase::OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor)
 {
-	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("This is an on screen message!"));
+	return true;
+}
+
+bool ACollectorBase::OnSelectionGained_Implementation()
+{
+	return true;
 }
 
 void ACollectorBase::OnInputTap_Implementation()
 {
-	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	pc->ShowBuildingUI();
+	HudWidget->ShowBuildingWidget();
 }
 
 void ACollectorBase::OnInputHold_Implementation()
@@ -63,11 +71,8 @@ void ACollectorBase::AddResources(int inResources)
 
 void ACollectorBase::SpawnCollector()
 {
-	//FActorSpawnParameters params;
-	//params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
 	ACollector* collector;
-	collector =  GetWorld()->SpawnActor<ACollector>(CollectorToSpawnClass, GetActorLocation() + FVector(-200.0, 0.0, 0.0), FRotator());
+	collector =  GetWorld()->SpawnActor<ACollector>(CollectorToSpawnClass, GetActorLocation() + FVector(-200.0, 0.0, 0.0), FRotator(0.0, 0.0, 0.0));
 	if(collector)
 		collector->SetNewBase(this);
 }

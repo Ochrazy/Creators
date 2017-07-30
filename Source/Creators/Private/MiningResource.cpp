@@ -47,7 +47,7 @@ int32 AMiningResource::RetrieveResources(int32 amount)
 		// Return actually retrieved Resources
 		return amount + ResourcesLeft;
 	}
-	ResetResource(true);
+	
 	return amount;
 }
 

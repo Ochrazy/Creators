@@ -68,11 +68,17 @@ void ACreatorsPlayerController::BeginPlay()
 	{
 		//Creating our widget and adding it to our viewport
 		HudWidget = CreateWidget<UHudWidget>(this, HudWidgetBP);
-
+		// Add Delegates
+		HudWidget->CollectorBaseButton->OnClicked.AddDynamic(this, &ACreatorsPlayerController::HandleOnClickedCollectorBaseButton);
+		HudWidget->CollectorButton->OnClicked.AddDynamic(this, &ACreatorsPlayerController::HandleOnClickedCollectorButton);
 		HudWidget->AddToViewport();
 	}
 }
 
+UHudWidget* ACreatorsPlayerController::GetHudWidget() const
+{
+	return HudWidget;
+}
 
 void ACreatorsPlayerController::GetAudioListenerPosition(FVector& OutLocation, FVector& OutFrontDir, FVector& OutRightDir)
 {
@@ -252,7 +258,7 @@ void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, fl
 		}
 		else
 		{
-			ShowBuildUI();
+			HudWidget->ShowBuildWidget();
 		}
 	}
 }
@@ -425,16 +431,11 @@ void ACreatorsPlayerController::MouseReleasedOverMinimap()
 	}
 }
 
-void ACreatorsPlayerController::UpdateResourcesUI()
+void ACreatorsPlayerController::AddResources(int inNumResources)
 {
+	NumResources += inNumResources;
+
 	HudWidget->UpdateResourcesText(NumResources);
-}
-
-void ACreatorsPlayerController::AddResources(int numResources)
-{
-	NumResources += numResources;
-
-	UpdateResourcesUI();
 }
 
 void ACreatorsPlayerController::EnterBuildingMode()
@@ -448,16 +449,6 @@ void ACreatorsPlayerController::EnterBuildingMode()
 		BuildingToPlace->SetActorEnableCollision(false);
 		bBuildingMode = true;
 	}
-}
-
-void ACreatorsPlayerController::ShowBuildingUI()
-{
-	HudWidget->ShowBuildingWidget();
-}
-
-void ACreatorsPlayerController::ShowBuildUI()
-{
-	HudWidget->ShowBuildWidget();
 }
 
 void ACreatorsPlayerController::HandleOnClickedCollectorBaseButton()

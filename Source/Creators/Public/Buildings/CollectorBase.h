@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Buildings/Building.h"
 #include "Interfaces/CreatorsInputInterface.h"
+#include "Interfaces/CreatorsSelectionInterface.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "CollectorBase.generated.h"
@@ -13,7 +14,7 @@
  * 
  */
 UCLASS()
-class CREATORS_API ACollectorBase : public ABuilding, public ICreatorsInputInterface
+class CREATORS_API ACollectorBase : public ABuilding, public ICreatorsInputInterface, public ICreatorsSelectionInterface
 {
 	GENERATED_BODY()
 
@@ -26,8 +27,6 @@ protected:
 	virtual void BeginPlay() override;
 	
 public:
-	UFUNCTION(Category = Default)
-		void OnSelected(ETouchIndex::Type type, UPrimitiveComponent* pComponent);
 
 	/** Static Mesh Comp, Set In BP Default Properties */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
@@ -39,6 +38,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class ACollector> CollectorToSpawnClass;
+
+	virtual bool OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor) override;
+
+	virtual bool OnSelectionGained_Implementation() override;
 
 	/** receive input: tap */
 	virtual void OnInputTap_Implementation() override;
@@ -62,4 +65,5 @@ public:
 private:
 	int NumResources;
 
+	TWeakObjectPtr<class UHudWidget> HudWidget;
 };

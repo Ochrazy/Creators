@@ -15,13 +15,27 @@ class CREATORS_API UHudWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintImplementableEvent, Category = UI)
+	UFUNCTION(BlueprintCallable, Category = UI)
 		void UpdateResourcesText(int inNumResources);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = UI)
+	UFUNCTION(BlueprintCallable, Category = UI)
 		void ShowBuildingWidget();
 	
-	UFUNCTION(BlueprintImplementableEvent, Category = UI)
+	UFUNCTION(BlueprintCallable, Category = UI)
 		void ShowBuildWidget();
 
+	UPROPERTY(meta = (BindWidget))
+		UGridPanel* BuildPanel;
+
+	UPROPERTY(meta = (BindWidget))
+		UGridPanel* BuildingPanel;
+
+	UPROPERTY(meta = (BindWidget))
+		UButton* CollectorBaseButton;
+
+	UPROPERTY(meta = (BindWidget))
+		UButton* CollectorButton;
+
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* ResourcesText;
 };
