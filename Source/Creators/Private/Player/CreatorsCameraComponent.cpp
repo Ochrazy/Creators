@@ -10,7 +10,7 @@
 UCreatorsCameraComponent::UCreatorsCameraComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ZoomAlpha = 0.4f;
+	ZoomAlpha = 0.7f;
 	CameraScrollSpeed = 4000.0f;
 	MinZoomLevel = 0.4f;
 	MaxZoomLevel = 1.0f;

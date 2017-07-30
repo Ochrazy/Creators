@@ -10,6 +10,8 @@ class CREATORS_API AMiningResource : public AActor
 {
 	GENERATED_BODY()
 
+
+public:
 	/** reset resource actor to reuse it again in game (it'll not unhide this actor) */
 	UFUNCTION(BlueprintCallable, Category = Resource)
 	void ResetResource(bool UnhideInGame = true);
@@ -46,7 +48,7 @@ protected:
 	int32 ResourcesLeft;
 
 	/** blueprint event: demolished */
-	UFUNCTION(BlueprintImplementableEvent, Category = Resource)
+	UFUNCTION(BlueprintCallable, Category = Resource)
 	void OnDepleted();
 	
 };

@@ -61,4 +61,9 @@ int32 AMiningResource::GetInitialResources() const
 	return GetClass()->GetDefaultObject<AMiningResource>()->GetAvailableResources();
 }
 
+void AMiningResource::OnDepleted()
+{
+	Destroy();
+}
+
 
