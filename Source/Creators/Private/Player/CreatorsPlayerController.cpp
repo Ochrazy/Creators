@@ -10,6 +10,7 @@
 #include "CreatorsGameState.h"
 #include "CreatorsGameMode.h"
 #include "Building.h"
+#include "CollectorBase.h"
 #include "UI/HudWidget.h"
 
 
@@ -19,11 +20,22 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 {
 //	CheatClass = UCreatorsCheatManager::StaticClass();
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 	bHidden = false;
 	bShowMouseCursor = true;
 
 	NumResources = 0;
 	bBuildingMode = false;
+}
+
+void ACreatorsPlayerController::Tick(float DeltaTime)
+{
+	if (bBuildingMode)
+	{
+		FHitResult hitResult;
+		GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), true, hitResult);
+		BuildingToPlace->SetActorLocation(hitResult.Location);
+	}
 }
 
 void ACreatorsPlayerController::SetupInputComponent()
@@ -222,16 +234,27 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 
 void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, float DownTime)
 {
-	FVector WorldPosition(0.f);
-	AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
-
-	SetSelectedActor(HitActor, WorldPosition);
-
-	if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
+	if (bBuildingMode)
 	{
-		ICreatorsInputInterface::Execute_OnInputTap(HitActor);
+		bBuildingMode = false;
+		BuildingToPlace->SetActorEnableCollision(true);
 	}
+	else
+	{
+		FVector WorldPosition(0.f);
+		AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
 
+		SetSelectedActor(HitActor, WorldPosition);
+
+		if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
+		{
+			ICreatorsInputInterface::Execute_OnInputTap(HitActor);
+		}
+		else
+		{
+			ShowBuildUI();
+		}
+	}
 }
 
 void ACreatorsPlayerController::OnHoldPressed(const FVector2D& ScreenPosition, float DownTime)
@@ -414,13 +437,17 @@ void ACreatorsPlayerController::AddResources(int numResources)
 	UpdateResourcesUI();
 }
 
-void ACreatorsPlayerController::EnterBuildingMode(ABuilding* buildingToBePlacedClass)
+void ACreatorsPlayerController::EnterBuildingMode()
 {
 	const FTransform transf = FTransform(FVector(0.0, 0.0, -9000.0));
-	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(FVector(0.0, 0.0, -9000.0), FRotator(0.0));
-
-	BuildingToPlace->SetActorEnableCollision(false);
-	bBuildingMode = true;
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(BuildingToPlaceClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
+	if (BuildingToPlace.IsValid())
+	{
+		BuildingToPlace->SetActorEnableCollision(false);
+		bBuildingMode = true;
+	}
 }
 
 void ACreatorsPlayerController::ShowBuildingUI()
@@ -431,4 +458,17 @@ void ACreatorsPlayerController::ShowBuildingUI()
 void ACreatorsPlayerController::ShowBuildUI()
 {
 	HudWidget->ShowBuildWidget();
+}
+
+void ACreatorsPlayerController::HandleOnClickedCollectorBaseButton()
+{
+	EnterBuildingMode();
+}
+
+void ACreatorsPlayerController::HandleOnClickedCollectorButton()
+{
+	if (SelectedActor.IsValid())
+	{
+		Cast<ACollectorBase>(SelectedActor.Get())->SpawnCollector();
+	}
 }

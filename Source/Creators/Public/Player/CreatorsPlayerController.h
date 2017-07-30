@@ -31,7 +31,7 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void Tick(float DeltaTime);
 	// End PlayerController interface
 
 public:
@@ -75,7 +75,14 @@ public:
 	void ShowBuildingUI();
 	void ShowBuildUI();
 
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void HandleOnClickedCollectorBaseButton();
+
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void HandleOnClickedCollectorButton();
+
 	void AddResources(int numResources);
+	void EnterBuildingMode();
 
 protected:
 	/** if set, input and camera updates will be ignored */
@@ -83,7 +90,7 @@ protected:
 
 	/** currently selected actor */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Building)
-	TWeakObjectPtr<AActor> SelectedActor;
+		TWeakObjectPtr<AActor> SelectedActor;
 
 	/** Swipe anchor. */
 	FVector SwipeAnchor3D;
@@ -95,7 +102,7 @@ protected:
 
 	/** Custom input handler. */
 	UPROPERTY()
-	class UCreatorsInput* InputHandler;
+		class UCreatorsInput* InputHandler;
 
 	/**
 	* Change current selection (on toggle on the same).
@@ -124,7 +131,7 @@ protected:
 
 	/* Hud Widget*/
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class UHudWidget> HudWidgetBP;
+		TSubclassOf<class UHudWidget> HudWidgetBP;
 
 	int NumResources;
 
@@ -132,7 +139,11 @@ protected:
 
 	TWeakObjectPtr<class ABuilding> BuildingToPlace;
 
-	void EnterBuildingMode(ABuilding* buildingToBePlacedClass);
+	/* Building To Place*/
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<ABuilding> BuildingToPlaceClass;
+
+	
 
 private:
 	/** Helper to return cast version of Spectator pawn. */

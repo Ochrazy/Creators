@@ -16,12 +16,12 @@ class CREATORS_API UHudWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintImplementableEvent, Category = UI)
-	void UpdateResourcesText(int inNumResources);
+		void UpdateResourcesText(int inNumResources);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = UI)
-	void ShowBuildingWidget();
+		void ShowBuildingWidget();
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = UI)
-	void ShowBuildWidget();
+		void ShowBuildWidget();
 
 };

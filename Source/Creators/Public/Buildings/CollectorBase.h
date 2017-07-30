@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Buildings/Building.h"
 #include "Interfaces/CreatorsInputInterface.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "CollectorBase.generated.h"
 
 /**
@@ -25,11 +27,18 @@ protected:
 	
 public:
 	UFUNCTION(Category = Default)
-	void OnSelected(ETouchIndex::Type type, UPrimitiveComponent* pComponent);
+		void OnSelected(ETouchIndex::Type type, UPrimitiveComponent* pComponent);
 
 	/** Static Mesh Comp, Set In BP Default Properties */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
-	class UStaticMeshComponent* Mesh;
+		class UStaticMeshComponent* Mesh;
+
+	/* Building To Place*/
+	//UPROPERTY(EditDefaultsOnly)
+		//TSubclassOf<class ACollector> CollectorToSpawnClass;
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class ACollector> CollectorToSpawnClass;
 
 	/** receive input: tap */
 	virtual void OnInputTap_Implementation() override;
@@ -47,6 +56,8 @@ public:
 	virtual void OnInputSwipeReleased_Implementation(const FVector& DeltaPosition, float DownTime) override;
 
 	void AddResources(int inResources);
+
+	void SpawnCollector();
 
 private:
 	int NumResources;

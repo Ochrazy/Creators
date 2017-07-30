@@ -2,6 +2,7 @@
 
 #include "Creators.h"
 #include "CollectorBase.h"
+#include "Collector.h"
 #include "CreatorsPlayerController.h"
 
 // Sets default values
@@ -11,8 +12,8 @@ ACollectorBase::ACollectorBase()
 	PrimaryActorTick.bCanEverTick = false;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	Mesh->OnInputTouchBegin.AddDynamic(this, &ACollectorBase::OnSelected);
-	Mesh->SetupAttachment(RootComponent);
+	//Mesh->OnInputTouchBegin.AddDynamic(this, &ACollectorBase::OnSelected);
+	RootComponent = Mesh;
 
 	NumResources = 0;
 }
@@ -58,5 +59,16 @@ void ACollectorBase::OnInputSwipeReleased_Implementation(const FVector& DeltaPos
 void ACollectorBase::AddResources(int inResources)
 {
 	NumResources += inResources;
+}
+
+void ACollectorBase::SpawnCollector()
+{
+	//FActorSpawnParameters params;
+	//params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	ACollector* collector;
+	collector =  GetWorld()->SpawnActor<ACollector>(CollectorToSpawnClass, GetActorLocation() + FVector(-200.0, 0.0, 0.0), FRotator());
+	if(collector)
+		collector->SetNewBase(this);
 }
 
