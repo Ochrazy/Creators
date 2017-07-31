@@ -10,10 +10,10 @@
 UCreatorsCameraComponent::UCreatorsCameraComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ZoomAlpha = 0.7f;
+	ZoomAlpha = 1.0f;
 	CameraScrollSpeed = 4000.0f;
-	MinZoomLevel = 0.4f;
-	MaxZoomLevel = 1.0f;
+	MinZoomLevel = 0.1f;
+	MaxZoomLevel = 4.0f;
 	MiniMapBoundsLimit = 0.8f;
 	StartSwipeCoords.Set(0.0f, 0.0f, 0.0f);
 }
@@ -139,7 +139,9 @@ void UCreatorsCameraComponent::MoveForward(float Val)
 		if( (Val != 0.f) && ( Controller != NULL ))
 		{
 			const FRotationMatrix R(Controller->PlayerCameraManager->GetCameraRotation());
-			const FVector WorldSpaceAccel = R.GetScaledAxis( EAxis::X ) * 100.0f;
+			//const FVector WorldSpaceAccel = R.GetScaledAxis( EAxis::X ) * 100.0f;
+			FVector WorldSpaceAccel = R.GetUnitAxis(EAxis::X) * 100.0f;
+			WorldSpaceAccel.Z = 0.0f; 
 
 			// transform to world space and add it
 			OwnerPawn->AddMovementInput(WorldSpaceAccel, Val);

@@ -149,32 +149,32 @@ void ACreatorsPlayerController::ProcessPlayerInput(const float DeltaTime, const 
 
 	Super::ProcessPlayerInput(DeltaTime, bGamePaused);
 
-	//if (!bIgnoreInput)
-	//{
-	//	const ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
-	//	ACreatorsSpectatorPawn* CreatorsPawn = GetCreatorsSpectatorPawn();
-	//	if ((CreatorsPawn != NULL) && (LocalPlayer != NULL))
-	//	{
-	//		// Create the bounds for the minimap so we can add it as a 'no scroll' zone.
-	//		ACreatorsHUD* const HUD = Cast<ACreatorsHUD>(GetHUD());
-	//		ACreatorsGameState const* const MyGameState = GetWorld()->GetGameState<ACreatorsGameState>();
-	//		if ((MyGameState != NULL) && (MyGameState->MiniMapCamera.IsValid() == true))
-	//		{
-	//			if (LocalPlayer->ViewportClient != NULL)
-	//			{
-	//				const FIntPoint ViewportSize = LocalPlayer->ViewportClient->Viewport->GetSizeXY();
-	//				const uint32 ViewTop = FMath::TruncToInt(LocalPlayer->Origin.Y * ViewportSize.Y);
-	//				const uint32 ViewBottom = ViewTop + FMath::TruncToInt(LocalPlayer->Size.Y * ViewportSize.Y);
+	if (!bIgnoreInput)
+	{
+		const ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+		ACreatorsSpectatorPawn* CreatorsPawn = GetCreatorsSpectatorPawn();
+		if ((CreatorsPawn != NULL) && (LocalPlayer != NULL))
+		{
+			// Create the bounds for the minimap so we can add it as a 'no scroll' zone.
+			//ACreatorsHUD* const HUD = Cast<ACreatorsHUD>(GetHUD());
+			//ACreatorsGameState const* const MyGameState = GetWorld()->GetGameState<ACreatorsGameState>();
+			//if ((MyGameState != NULL) && (MyGameState->MiniMapCamera.IsValid() == true))
+			{
+				if (LocalPlayer->ViewportClient != NULL)
+				{
+					//const FIntPoint ViewportSize = LocalPlayer->ViewportClient->Viewport->GetSizeXY();
+					//const uint32 ViewTop = FMath::TruncToInt(LocalPlayer->Origin.Y * ViewportSize.Y);
+					//const uint32 ViewBottom = ViewTop + FMath::TruncToInt(LocalPlayer->Size.Y * ViewportSize.Y);
 
-	//				FVector TopLeft(HUD->MiniMapMargin, ViewBottom - HUD->MiniMapMargin - MyGameState->MiniMapCamera->MiniMapHeight, 0);
-	//				FVector BottomRight((int32)MyGameState->MiniMapCamera->MiniMapWidth, MyGameState->MiniMapCamera->MiniMapHeight, 0);
-	//				FBox MiniMapBounds(TopLeft, TopLeft + BottomRight);
-	//				CreatorsPawn->GetCreatorsCameraComponent()->AddNoScrollZone(MiniMapBounds);
-	//				CreatorsPawn->GetCreatorsCameraComponent()->UpdateCameraMovement(this);
-	//			}
-	//		}
-	//	}
-	//}
+					//FVector TopLeft(HUD->MiniMapMargin, ViewBottom - HUD->MiniMapMargin - MyGameState->MiniMapCamera->MiniMapHeight, 0);
+					//FVector BottomRight((int32)MyGameState->MiniMapCamera->MiniMapWidth, MyGameState->MiniMapCamera->MiniMapHeight, 0);
+					//FBox MiniMapBounds(TopLeft, TopLeft + BottomRight);
+					//CreatorsPawn->GetCreatorsCameraComponent()->AddNoScrollZone(MiniMapBounds);
+					CreatorsPawn->GetCreatorsCameraComponent()->UpdateCameraMovement(this);
+				}
+			}
+		}
+	}
 }
 
 void ACreatorsPlayerController::SetCameraTarget(const FVector& CameraTarget)
