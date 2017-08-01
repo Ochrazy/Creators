@@ -26,15 +26,51 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 
 	NumResources = 0;
 	bBuildingMode = false;
+	bBuildingToPlaceOverlaps = true;
 }
 
 void ACreatorsPlayerController::Tick(float DeltaTime)
 {
+	FVector2D MousePosition;
+	ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+	if (LocalPlayer->ViewportClient->Viewport)
+	{
+		FIntPoint MousePos;
+		LocalPlayer->ViewportClient->Viewport->GetMousePos(MousePos);
+		MousePosition = (FVector2D)MousePos;
+		GEngine->AddOnScreenDebugMessage(7, 0.1f, FColor::Red, FString::Printf(TEXT("Some variable values: x: %f, y: %f"), MousePosition.X, MousePosition.Y));
+	}
 	if (bBuildingMode)
 	{
+		/*FVector2D MousePosition;
+		ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+		if (LocalPlayer->ViewportClient->Viewport)
+		{
+			FIntPoint MousePos;
+			LocalPlayer->ViewportClient->Viewport->GetMousePos(MousePos);
+			MousePosition = (FVector2D)MousePos;
+			GEngine->AddOnScreenDebugMessage(7, 0.1f, FColor::Red, FString::Printf(TEXT("Some variable values: x: %f, y: %f"), MousePosition.X, MousePosition.Y));
+		}*/
+		if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
+		{
+			//GEngine->AddOnScreenDebugMessage(7, 0.1f, FColor::Red, FString::Printf(TEXT("Some variable values: x: %f, y: %f"), MousePosition.X, MousePosition.Y));
+		}
 		FHitResult hitResult;
-		GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), true, hitResult);
-		BuildingToPlace->SetActorLocation(hitResult.Location);
+		GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(COLLISION_FLOOR), true, hitResult);
+
+		FVector origin, extent;
+		BuildingToPlace->GetActorBounds(true, origin, extent);
+		BuildingToPlace->SetActorLocation(hitResult.Location + FVector(0.f, 0.f, extent.Z));
+		TArray<AActor*> overlappingActors;
+		BuildingToPlace->GetOverlappingActors(overlappingActors);
+		GEngine->AddOnScreenDebugMessage(4, 0.1f, FColor::Red, TEXT("This is an on screen messa22222ge!"));
+		if (overlappingActors.Num() > 0)
+		{
+			//BuildingToPlace->AddActorLocalOffset(FVector(100.0, 0.0, 0.0));
+			GEngine->AddOnScreenDebugMessage(3, 0.1f, FColor::Red, TEXT("This is an on screen message!"));
+			bBuildingToPlaceOverlaps = true;
+		}
+		else bBuildingToPlaceOverlaps = false;
 	}
 }
 
@@ -240,12 +276,12 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 
 void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, float DownTime)
 {
-	if (bBuildingMode)
+	if (bBuildingMode && !bBuildingToPlaceOverlaps)
 	{
 		bBuildingMode = false;
 		BuildingToPlace->SetActorEnableCollision(true);
 	}
-	else
+	else if (!bBuildingMode)
 	{
 		FVector WorldPosition(0.f);
 		AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
@@ -446,8 +482,12 @@ void ACreatorsPlayerController::EnterBuildingMode()
 	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(BuildingToPlaceClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
 	if (BuildingToPlace.IsValid())
 	{
-		BuildingToPlace->SetActorEnableCollision(false);
 		bBuildingMode = true;
+		BuildingToPlace->SetActorEnableCollision(true);
+		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
+		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 	}
 }
 

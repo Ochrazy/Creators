@@ -151,5 +151,7 @@ private:
 
 	/** Hud Widget */
 	class UHudWidget* HudWidget;
+
+	bool bBuildingToPlaceOverlaps;
 	
 };

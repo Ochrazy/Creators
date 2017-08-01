@@ -20,3 +20,4 @@ DECLARE_LOG_CATEGORY_EXTERN(LogGame, Log, All);
 #define COLLISION_WEAPON		ECC_GameTraceChannel1
 #define COLLISION_PROJECTILE	ECC_GameTraceChannel2
 #define COLLISION_PANCAMERA		ECC_GameTraceChannel3
+#define COLLISION_FLOOR			ECC_GameTraceChannel4
