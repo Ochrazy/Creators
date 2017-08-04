@@ -24,6 +24,11 @@ void ACollectorBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
+	//set paramater with Set***ParamaterValue
+	DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
+	Mesh->SetMaterial(0, DynMaterial.Get());
+
 	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	const ACreatorsPlayerController* cpController = Cast<ACreatorsPlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
 	HudWidget = (cpController) ? Cast<UHudWidget>(cpController->GetHudWidget()) : NULL;

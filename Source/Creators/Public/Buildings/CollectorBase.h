@@ -32,6 +32,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
 		class UStaticMeshComponent* Mesh;
 
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	TWeakObjectPtr<UMaterialInstanceDynamic> DynMaterial;
+
 	/* Building To Place*/
 	//UPROPERTY(EditDefaultsOnly)
 		//TSubclassOf<class ACollector> CollectorToSpawnClass;

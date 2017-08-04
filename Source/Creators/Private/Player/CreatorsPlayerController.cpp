@@ -45,9 +45,14 @@ void ACreatorsPlayerController::Tick(float DeltaTime)
 		if (overlappingActors.Num() > 0)
 		{
 			//BuildingToPlace->AddActorLocalOffset(FVector(100.0, 0.0, 0.0));
+			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 			bBuildingToPlaceOverlaps = true;
 		}
-		else bBuildingToPlaceOverlaps = false;
+		else
+		{
+			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
+			bBuildingToPlaceOverlaps = false;
+		}
 	}
 }
 
