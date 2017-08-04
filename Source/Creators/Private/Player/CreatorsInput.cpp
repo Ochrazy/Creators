@@ -62,20 +62,26 @@ void UCreatorsInput::UpdateGameKeys(float DeltaTime)
 
 	// gather current states
 	uint32 CurrentTouchState = 0;
-	for (int32 i = 0; i < ARRAY_COUNT(MyController->PlayerInput->Touches); i++)
+	/*for (int32 i = 0; i < ARRAY_COUNT(MyController->PlayerInput->Touches); i++)
 	{
 		if (MyController->PlayerInput->Touches[i].Z != 0)
 		{
 			CurrentTouchState |= (1 << i);
 		}
+	}*/
+	if (MyController->IsInputKeyDown(EKeys::LeftMouseButton))
+	{
+		CurrentTouchState |= (1 << 0);
 	}
 
 	// detection
-	FVector2D LocalPosition1 = FVector2D(MyController->PlayerInput->Touches[0]);
-	FVector2D LocalPosition2 = FVector2D(MyController->PlayerInput->Touches[1]);
+	FVector2D LocalPosition1;
+	MyController->GetMousePosition(LocalPosition1.X, LocalPosition1.Y);
+	//FVector2D LocalPosition1 = FVector2D(MyController->PlayerInput->Touches[0]);
+	//FVector2D LocalPosition2 = FVector2D(MyController->PlayerInput->Touches[1]);
 
 	DetectOnePointActions(CurrentTouchState & 1, PrevTouchState & 1, DeltaTime, LocalPosition1, TouchAnchors[0], Touch0DownTime);
-	DetectTwoPointsActions((CurrentTouchState & 1) && (CurrentTouchState & 2), (PrevTouchState & 1) && (PrevTouchState & 2), DeltaTime, LocalPosition1, LocalPosition2);
+	//DetectTwoPointsActions((CurrentTouchState & 1) && (CurrentTouchState & 2), (PrevTouchState & 1) && (PrevTouchState & 2), DeltaTime, LocalPosition1, LocalPosition2);
 
 	// save states
 	PrevTouchState = CurrentTouchState;
