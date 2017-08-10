@@ -12,6 +12,8 @@
 #include "Building.h"
 #include "CollectorBase.h"
 #include "UI/HudWidget.h"
+#include "WidgetComponent.h"
+#include "Player/CreatorsInteractionComponent.h"
 
 
 ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -27,10 +29,15 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 	NumResources = 0;
 	bBuildingMode = false;
 	bBuildingToPlaceOverlaps = true;
+
+	InteractionComponent = CreateDefaultSubobject<UCreatorsInteractionComponent>(TEXT("InteractionComponent"));
 }
 
 void ACreatorsPlayerController::Tick(float DeltaTime)
 {
+	FHitResult HitResult = InteractionComponent->PerformCustomTrace();
+	InteractionComponent->SetCustomHitResult(HitResult);
+
 	if (bBuildingMode)
 	{
 		FHitResult hitResult;
@@ -265,15 +272,66 @@ void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, fl
 	}
 	else if (!bBuildingMode)
 	{
+		InteractionComponent->PressPointerKey(EKeys::LeftMouseButton);
+		InteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
+
 		FVector WorldPosition(0.f);
 		AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
 
 		SetSelectedActor(HitActor, WorldPosition);
 
+		//TArray<UPrimitiveComponent*> PrimitiveChildren;
+		//TArray<USceneComponent*> SceneChildren;
+		//if (AActor* Owner = GetOwner())
+		//{
+		//	if (USceneComponent* Root = Owner->GetRootComponent())
+		//	{
+		//		Root = Root->GetAttachmentRoot();
+		//		Root->GetChildrenComponents(true, SceneChildren);
+		//		SceneChildren.Add(Root);
+		//	}
+		//}
+
+		//for (USceneComponent* SceneComponent : SceneChildren)
+		//{
+		//	if (UPrimitiveComponent* PrimtiveComponet = Cast<UPrimitiveComponent>(SceneComponent))
+		//	{
+		//		// Don't ignore widget components that are siblings.
+		//		if (SceneComponent->IsA<UWidgetComponent>())
+		//		{
+		//			continue;
+		//		}
+
+		//		PrimitiveChildren.Add(PrimtiveComponet);
+		//	}
+		//}
+		//FCollisionQueryParams Params = FCollisionQueryParams::DefaultQueryParam;
+		//Params.AddIgnoredComponents(PrimitiveChildren);
+		//FVector2D MousePosition;
+		//TArray<FHitResult> MultiHits;
+		//ULocalPlayer* LocalPlayer = GetLocalPlayer();
+		//if (LocalPlayer && LocalPlayer->ViewportClient)
+		//{
+		//	if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
+		//	{
+		//		FVector WorldOrigin;
+		//		FVector WorldDirection;
+		//		if(DeprojectScreenPositionToWorld(MousePosition.X, MousePosition.Y, WorldOrigin, WorldDirection) == true)
+		//		{
+		//			GetWorld()->LineTraceMultiByChannel(MultiHits, WorldOrigin, WorldOrigin + WorldDirection * 10000.f, COLLISION_WEAPON, Params);
+		//		}
+		//	}
+		//}
+
+
 		if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
 		{
 			ICreatorsInputInterface::Execute_OnInputTap(HitActor);
 		}
+		//else if (UWidgetComponent* HitWidgetComponent = Cast<UWidgetComponent>(MultiHits[0].GetComponent()) )
+		//{
+		//	
+		//}
 		else
 		{
 			HudWidget->ShowBuildWidget();

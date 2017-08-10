@@ -89,6 +89,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Building)
 		TWeakObjectPtr<AActor> SelectedActor;
 
+	class UCreatorsInteractionComponent* InteractionComponent;
+
 	/** Swipe anchor. */
 	FVector SwipeAnchor3D;
 
