@@ -73,9 +73,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void HandleOnClickedCollectorBaseButton();
 
-	UFUNCTION(BlueprintCallable, Category = UI)
-		void HandleOnClickedCollectorButton();
-
 	void AddResources(int inNumResources);
 	void EnterBuildingMode();
 

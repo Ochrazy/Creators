@@ -70,5 +70,16 @@ public:
 private:
 	int NumResources;
 
-	TWeakObjectPtr<class UHudWidget> HudWidget;
+	/* Widget*/
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class UBuildingWidget> BuildingWidgetBP;
+
+	/** Hud Widget */
+	UBuildingWidget* BuildingWidget;
+
+	UPROPERTY(EditDefaultsOnly)
+		class UWidgetComponent* WidgetComponent;
+
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void HandleOnClickedCollectorButton();
 };

@@ -35,9 +35,6 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 
 void ACreatorsPlayerController::Tick(float DeltaTime)
 {
-	FHitResult HitResult = InteractionComponent->PerformCustomTrace();
-	InteractionComponent->SetCustomHitResult(HitResult);
-
 	if (bBuildingMode)
 	{
 		FHitResult hitResult;
@@ -46,12 +43,11 @@ void ACreatorsPlayerController::Tick(float DeltaTime)
 		FVector origin, extent;
 		BuildingToPlace->GetActorBounds(true, origin, extent);
 		BuildingToPlace->SetActorLocation(hitResult.Location + FVector(0.f, 0.f, extent.Z));
+		// Check if Building to Place overlaps
 		TArray<AActor*> overlappingActors;
 		BuildingToPlace->GetOverlappingActors(overlappingActors);
-
 		if (overlappingActors.Num() > 0)
 		{
-			//BuildingToPlace->AddActorLocalOffset(FVector(100.0, 0.0, 0.0));
 			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 			bBuildingToPlaceOverlaps = true;
 		}
@@ -60,6 +56,10 @@ void ACreatorsPlayerController::Tick(float DeltaTime)
 			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
 			bBuildingToPlaceOverlaps = false;
 		}
+	}
+	else
+	{
+		InteractionComponent->PerformCustomTrace();
 	}
 }
 
@@ -95,7 +95,6 @@ void ACreatorsPlayerController::BeginPlay()
 		HudWidget = CreateWidget<UHudWidget>(this, HudWidgetBP);
 		// Add Delegates
 		HudWidget->CollectorBaseButton->OnClicked.AddDynamic(this, &ACreatorsPlayerController::HandleOnClickedCollectorBaseButton);
-		HudWidget->CollectorButton->OnClicked.AddDynamic(this, &ACreatorsPlayerController::HandleOnClickedCollectorButton);
 		HudWidget->AddToViewport();
 	}
 }
@@ -212,15 +211,14 @@ void ACreatorsPlayerController::SetCameraTarget(const FVector& CameraTarget)
 
 AActor* ACreatorsPlayerController::GetFriendlyTarget(const FVector2D& ScreenPoint, FVector& WorldPoint) const
 {
-	FHitResult Hit;
-	if (GetHitResultAtScreenPosition(ScreenPoint, COLLISION_WEAPON, true, Hit))
+	FHitResult Hit = InteractionComponent->GetLastRawHitResult();
+
+	if (!ACreatorsGameMode::OnEnemyTeam(Hit.GetActor(), this))
 	{
-		if (!ACreatorsGameMode::OnEnemyTeam(Hit.GetActor(), this))
-		{
-			WorldPoint = Hit.ImpactPoint;
-			return Hit.GetActor();
-		}
+		WorldPoint = Hit.ImpactPoint;
+		return Hit.GetActor();
 	}
+
 
 	return NULL;
 }
@@ -269,6 +267,9 @@ void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, fl
 	{
 		bBuildingMode = false;
 		BuildingToPlace->SetActorEnableCollision(true);
+		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
+		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
 	}
 	else if (!bBuildingMode)
 	{
@@ -280,61 +281,10 @@ void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, fl
 
 		SetSelectedActor(HitActor, WorldPosition);
 
-		//TArray<UPrimitiveComponent*> PrimitiveChildren;
-		//TArray<USceneComponent*> SceneChildren;
-		//if (AActor* Owner = GetOwner())
-		//{
-		//	if (USceneComponent* Root = Owner->GetRootComponent())
-		//	{
-		//		Root = Root->GetAttachmentRoot();
-		//		Root->GetChildrenComponents(true, SceneChildren);
-		//		SceneChildren.Add(Root);
-		//	}
-		//}
-
-		//for (USceneComponent* SceneComponent : SceneChildren)
-		//{
-		//	if (UPrimitiveComponent* PrimtiveComponet = Cast<UPrimitiveComponent>(SceneComponent))
-		//	{
-		//		// Don't ignore widget components that are siblings.
-		//		if (SceneComponent->IsA<UWidgetComponent>())
-		//		{
-		//			continue;
-		//		}
-
-		//		PrimitiveChildren.Add(PrimtiveComponet);
-		//	}
-		//}
-		//FCollisionQueryParams Params = FCollisionQueryParams::DefaultQueryParam;
-		//Params.AddIgnoredComponents(PrimitiveChildren);
-		//FVector2D MousePosition;
-		//TArray<FHitResult> MultiHits;
-		//ULocalPlayer* LocalPlayer = GetLocalPlayer();
-		//if (LocalPlayer && LocalPlayer->ViewportClient)
-		//{
-		//	if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
-		//	{
-		//		FVector WorldOrigin;
-		//		FVector WorldDirection;
-		//		if(DeprojectScreenPositionToWorld(MousePosition.X, MousePosition.Y, WorldOrigin, WorldDirection) == true)
-		//		{
-		//			GetWorld()->LineTraceMultiByChannel(MultiHits, WorldOrigin, WorldOrigin + WorldDirection * 10000.f, COLLISION_WEAPON, Params);
-		//		}
-		//	}
-		//}
-
-
+		InteractionComponent->PerformCustomTrace();
 		if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
 		{
 			ICreatorsInputInterface::Execute_OnInputTap(HitActor);
-		}
-		//else if (UWidgetComponent* HitWidgetComponent = Cast<UWidgetComponent>(MultiHits[0].GetComponent()) )
-		//{
-		//	
-		//}
-		else
-		{
-			HudWidget->ShowBuildWidget();
 		}
 	}
 }
@@ -534,12 +484,4 @@ void ACreatorsPlayerController::EnterBuildingMode()
 void ACreatorsPlayerController::HandleOnClickedCollectorBaseButton()
 {
 	EnterBuildingMode();
-}
-
-void ACreatorsPlayerController::HandleOnClickedCollectorButton()
-{
-	if (SelectedActor.IsValid())
-	{
-		Cast<ACollectorBase>(SelectedActor.Get())->SpawnCollector();
-	}
 }

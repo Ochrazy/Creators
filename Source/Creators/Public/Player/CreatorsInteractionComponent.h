@@ -17,5 +17,11 @@ class CREATORS_API UCreatorsInteractionComponent : public UWidgetInteractionComp
 	UCreatorsInteractionComponent(const FObjectInitializer& ObjectInitializer);
 	
 public:
-	FHitResult PerformCustomTrace() const;
+	void PerformCustomTrace(bool bIgnoreRelatedComponents = false);
+	FHitResult GetLastRawHitResult() const;
+
+private:
+	FHitResult LastRawHitResult;
+
+	FHitResult FilterWidgetComponents(const FHitResult& HitResult) const;
 };

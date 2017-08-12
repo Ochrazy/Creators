@@ -7,15 +7,3 @@ void UHudWidget::UpdateResourcesText(int inNumResources)
 {
 	ResourcesText->SetText(FText::FromString(FString::FromInt(inNumResources)));
 }
-
-void UHudWidget::ShowBuildingWidget()
-{
-	BuildPanel->SetVisibility(ESlateVisibility::Hidden);
-	BuildingPanel->SetVisibility(ESlateVisibility::Visible);
-}
-
-void UHudWidget::ShowBuildWidget()
-{
-	BuildPanel->SetVisibility(ESlateVisibility::Visible);
-	BuildingPanel->SetVisibility(ESlateVisibility::Hidden);
-}
