@@ -70,15 +70,8 @@ public:
 private:
 	int NumResources;
 
-	/* Widget*/
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<class UBuildingWidget> BuildingWidgetBP;
-
-	/** Hud Widget */
-	UBuildingWidget* BuildingWidget;
-
-	UPROPERTY(EditDefaultsOnly)
-		class UWidgetComponent* WidgetComponent;
+		class UCreatorsBaseWidgetComponent* WidgetComponent;
 
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void HandleOnClickedCollectorButton();

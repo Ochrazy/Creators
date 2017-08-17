@@ -243,7 +243,12 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 		{
 			if (ICreatorsSelectionInterface::Execute_OnSelectionLost(OldSelection, NewPosition, NewSelectedActor))
 			{
-				SelectedActor = NULL;
+				// Execute Selection Interface on Components
+				for (auto& component : OldSelection->GetComponents())
+					if (component->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
+						ICreatorsSelectionInterface::Execute_OnSelectionLost(component, NewPosition, NewSelectedActor);
+
+				SelectedActor = NULL;				
 			}
 		}
 
@@ -254,6 +259,11 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 			{
 				if (ICreatorsSelectionInterface::Execute_OnSelectionGained(NewSelectedActor))
 				{
+					// Execute Selection Interface on Components
+					for (auto& component : NewSelectedActor->GetComponents())
+						if (component->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
+							ICreatorsSelectionInterface::Execute_OnSelectionGained(component);
+
 					SelectedActor = NewSelectedActor;
 				}
 			}

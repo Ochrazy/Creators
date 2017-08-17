@@ -5,6 +5,7 @@
 #include "Collector.h"
 #include "CreatorsPlayerController.h"
 #include "BuildingWidget.h"
+#include "CreatorsBaseWidgetComponent.h"
 #include "WidgetComponent.h"
 
 // Sets default values
@@ -17,7 +18,7 @@ ACollectorBase::ACollectorBase()
 	//Mesh->OnInputTouchBegin.AddDynamic(this, &ACollectorBase::OnSelected);
 	RootComponent = Mesh;
 
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent = CreateDefaultSubobject<UCreatorsBaseWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 	WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 40.0f));
 	WidgetComponent->SetVisibility(true);
@@ -35,36 +36,19 @@ void ACollectorBase::BeginPlay()
 	DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
 	Mesh->SetMaterial(0, DynMaterial.Get());
 
-	if (BuildingWidgetBP)
-	{
-		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-		if (PlayerController)
-		{
-			//Creating our widget and adding it to our viewport
-			BuildingWidget = CreateWidget<UBuildingWidget>(PlayerController, BuildingWidgetBP);
-			// Add Delegates
-			BuildingWidget->CollectorButton->OnClicked.AddDynamic(this, &ACollectorBase::HandleOnClickedCollectorButton);
-
-			WidgetComponent->SetWidget(BuildingWidget);
-			WidgetComponent->SetVisibility(false);
-			WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-	}
+	// Add Delegates
+	UBuildingWidget* buildingWidget = Cast<UBuildingWidget>(WidgetComponent->GetUserWidgetObject());
+	if(buildingWidget)
+		buildingWidget->CollectorButton->OnClicked.AddDynamic(this, &ACollectorBase::HandleOnClickedCollectorButton);
 }
 
 bool ACollectorBase::OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor)
 {
-	WidgetComponent->SetVisibility(false);
-	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	return true;
 }
 
 bool ACollectorBase::OnSelectionGained_Implementation()
 {
-	WidgetComponent->SetVisibility(true);
-	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-
 	return true;
 }
 
@@ -75,7 +59,6 @@ void ACollectorBase::HandleOnClickedCollectorButton()
 
 void ACollectorBase::OnInputTap_Implementation()
 {
-	//HudWidget->ShowBuildingWidget();
 }
 
 void ACollectorBase::OnInputHold_Implementation()
