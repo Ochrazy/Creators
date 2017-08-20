@@ -27,40 +27,13 @@ ACreatorsPlayerController::ACreatorsPlayerController(const FObjectInitializer& O
 	bShowMouseCursor = true;
 
 	NumResources = 0;
-	bBuildingMode = false;
-	bBuildingToPlaceOverlaps = true;
 
 	InteractionComponent = CreateDefaultSubobject<UCreatorsInteractionComponent>(TEXT("InteractionComponent"));
 }
 
 void ACreatorsPlayerController::Tick(float DeltaTime)
 {
-	if (bBuildingMode)
-	{
-		FHitResult hitResult;
-		GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(COLLISION_FLOOR), true, hitResult);
-
-		FVector origin, extent;
-		BuildingToPlace->GetActorBounds(true, origin, extent);
-		BuildingToPlace->SetActorLocation(hitResult.Location + FVector(0.f, 0.f, extent.Z));
-		// Check if Building to Place overlaps
-		TArray<AActor*> overlappingActors;
-		BuildingToPlace->GetOverlappingActors(overlappingActors);
-		if (overlappingActors.Num() > 0)
-		{
-			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
-			bBuildingToPlaceOverlaps = true;
-		}
-		else
-		{
-			Cast<ACollectorBase>(BuildingToPlace.Get())->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
-			bBuildingToPlaceOverlaps = false;
-		}
-	}
-	else
-	{
-		InteractionComponent->PerformCustomTrace();
-	}
+	InteractionComponent->PerformCustomTrace();
 }
 
 void ACreatorsPlayerController::SetupInputComponent()
@@ -93,8 +66,6 @@ void ACreatorsPlayerController::BeginPlay()
 	{
 		//Creating our widget and adding it to our viewport
 		HudWidget = CreateWidget<UHudWidget>(this, HudWidgetBP);
-		// Add Delegates
-		HudWidget->CollectorBaseButton->OnClicked.AddDynamic(this, &ACreatorsPlayerController::HandleOnClickedCollectorBaseButton);
 		HudWidget->AddToViewport();
 	}
 }
@@ -244,9 +215,10 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 			if (ICreatorsSelectionInterface::Execute_OnSelectionLost(OldSelection, NewPosition, NewSelectedActor))
 			{
 				// Execute Selection Interface on Components
-				for (auto& component : OldSelection->GetComponents())
-					if (component->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
-						ICreatorsSelectionInterface::Execute_OnSelectionLost(component, NewPosition, NewSelectedActor);
+				auto components = OldSelection->GetComponents();
+				for (auto ComponentsIt = components.CreateIterator(); ComponentsIt; ++ComponentsIt)
+					if ((*ComponentsIt)->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
+						ICreatorsSelectionInterface::Execute_OnSelectionLost((*ComponentsIt), NewPosition, NewSelectedActor);
 
 				SelectedActor = NULL;				
 			}
@@ -260,9 +232,10 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 				if (ICreatorsSelectionInterface::Execute_OnSelectionGained(NewSelectedActor))
 				{
 					// Execute Selection Interface on Components
-					for (auto& component : NewSelectedActor->GetComponents())
-						if (component->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
-							ICreatorsSelectionInterface::Execute_OnSelectionGained(component);
+					auto components = NewSelectedActor->GetComponents();
+					for (auto ComponentsIt = components.CreateIterator(); ComponentsIt; ++ComponentsIt)
+						if ((*ComponentsIt)->GetClass()->ImplementsInterface(UCreatorsSelectionInterface::StaticClass()))
+							ICreatorsSelectionInterface::Execute_OnSelectionGained((*ComponentsIt));
 
 					SelectedActor = NewSelectedActor;
 				}
@@ -273,29 +246,18 @@ void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const
 
 void ACreatorsPlayerController::OnTapPressed(const FVector2D& ScreenPosition, float DownTime)
 {
-	if (bBuildingMode && !bBuildingToPlaceOverlaps)
+	InteractionComponent->PressPointerKey(EKeys::LeftMouseButton);
+	InteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
+
+	FVector WorldPosition(0.f);
+	AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
+
+	SetSelectedActor(HitActor, WorldPosition);
+
+	InteractionComponent->PerformCustomTrace();
+	if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
 	{
-		bBuildingMode = false;
-		BuildingToPlace->SetActorEnableCollision(true);
-		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
-	}
-	else if (!bBuildingMode)
-	{
-		InteractionComponent->PressPointerKey(EKeys::LeftMouseButton);
-		InteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
-
-		FVector WorldPosition(0.f);
-		AActor* const HitActor = GetFriendlyTarget(ScreenPosition, WorldPosition);
-
-		SetSelectedActor(HitActor, WorldPosition);
-
-		InteractionComponent->PerformCustomTrace();
-		if (HitActor && HitActor->GetClass()->ImplementsInterface(UCreatorsInputInterface::StaticClass()))
-		{
-			ICreatorsInputInterface::Execute_OnInputTap(HitActor);
-		}
+		ICreatorsInputInterface::Execute_OnInputTap(HitActor);
 	}
 }
 
@@ -472,26 +434,4 @@ void ACreatorsPlayerController::AddResources(int inNumResources)
 	NumResources += inNumResources;
 
 	HudWidget->UpdateResourcesText(NumResources);
-}
-
-void ACreatorsPlayerController::EnterBuildingMode()
-{
-	const FTransform transf = FTransform(FVector(0.0, 0.0, -9000.0));
-	FActorSpawnParameters params;
-	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(BuildingToPlaceClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
-	if (BuildingToPlace.IsValid())
-	{
-		bBuildingMode = true;
-		BuildingToPlace->SetActorEnableCollision(true);
-		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-	}
-}
-
-void ACreatorsPlayerController::HandleOnClickedCollectorBaseButton()
-{
-	EnterBuildingMode();
 }

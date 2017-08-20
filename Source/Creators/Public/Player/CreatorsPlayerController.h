@@ -70,11 +70,7 @@ public:
 	/** Handler for mouse release over minimap. */
 	void MouseReleasedOverMinimap();
 
-	UFUNCTION(BlueprintCallable, Category = UI)
-		void HandleOnClickedCollectorBaseButton();
-
 	void AddResources(int inNumResources);
-	void EnterBuildingMode();
 
 	class UHudWidget* GetHudWidget() const;
 
@@ -129,17 +125,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class UHudWidget> HudWidgetBP;
 
-	int NumResources;
-
-	bool bBuildingMode;
-
-	TWeakObjectPtr<class ABuilding> BuildingToPlace;
-
-	/* Building To Place*/
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<ABuilding> BuildingToPlaceClass;
-
-	
+	int NumResources;	
 
 private:
 	/** Helper to return cast version of Spectator pawn. */
@@ -150,7 +136,5 @@ private:
 
 	/** Hud Widget */
 	class UHudWidget* HudWidget;
-
-	bool bBuildingToPlaceOverlaps;
 	
 };

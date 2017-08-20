@@ -14,10 +14,6 @@ ACollectorBase::ACollectorBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//Mesh->OnInputTouchBegin.AddDynamic(this, &ACollectorBase::OnSelected);
-	RootComponent = Mesh;
-
 	WidgetComponent = CreateDefaultSubobject<UCreatorsBaseWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 	WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 40.0f));
@@ -31,54 +27,15 @@ void ACollectorBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
-	//set paramater with Set***ParamaterValue
-	DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
-	Mesh->SetMaterial(0, DynMaterial.Get());
-
 	// Add Delegates
 	UBuildingWidget* buildingWidget = Cast<UBuildingWidget>(WidgetComponent->GetUserWidgetObject());
 	if(buildingWidget)
 		buildingWidget->CollectorButton->OnClicked.AddDynamic(this, &ACollectorBase::HandleOnClickedCollectorButton);
 }
 
-bool ACollectorBase::OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor)
-{
-	return true;
-}
-
-bool ACollectorBase::OnSelectionGained_Implementation()
-{
-	return true;
-}
-
 void ACollectorBase::HandleOnClickedCollectorButton()
 {
 	SpawnCollector();
-}
-
-void ACollectorBase::OnInputTap_Implementation()
-{
-}
-
-void ACollectorBase::OnInputHold_Implementation()
-{
-
-}
-
-void ACollectorBase::OnInputHoldReleased_Implementation(float DownTime)
-{
-
-}
-
-void ACollectorBase::OnInputSwipeUpdate_Implementation(const FVector& DeltaPosition)
-{
-
-}
-
-void ACollectorBase::OnInputSwipeReleased_Implementation(const FVector& DeltaPosition, float DownTime)
-{
-
 }
 
 void ACollectorBase::AddResources(int inResources)

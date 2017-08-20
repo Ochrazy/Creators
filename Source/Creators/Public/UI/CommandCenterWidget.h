@@ -4,20 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "HudWidget.generated.h"
+#include "CommandCenterWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CREATORS_API UHudWidget : public UUserWidget
+class CREATORS_API UCommandCenterWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
 public:
-	UFUNCTION(BlueprintCallable, Category = UI)
-		void UpdateResourcesText(int inNumResources);
-
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* ResourcesText;
+		UButton* CollectorBaseButton;
+	
 };
