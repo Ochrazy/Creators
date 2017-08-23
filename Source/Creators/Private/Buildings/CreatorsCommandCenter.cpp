@@ -38,13 +38,13 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 	{
 		FHitResult HitResult;
 		ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(GetWorld()->GetFirstLocalPlayerFromController());
+		FVector WorldOrigin;
+		FVector WorldDirection;
 		if (LocalPlayer && LocalPlayer->ViewportClient)
 		{
 			FVector2D MousePosition;
 			if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
 			{
-				FVector WorldOrigin;
-				FVector WorldDirection;
 				if (UGameplayStatics::DeprojectScreenToWorld(GetWorld()->GetFirstPlayerController(), MousePosition, WorldOrigin, WorldDirection) == true)
 				{
 					GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin, WorldOrigin + WorldDirection * 10000, COLLISION_FLOOR);
@@ -52,28 +52,38 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 			}
 		}
 
-		FVector origin, extent;
-		BuildingToPlace->GetActorBounds(true, origin, extent);
-		BuildingToPlace->SetActorLocation(HitResult.Location + FVector(0.f, 0.f, extent.Z));
-
-		// Check if Building to Place overlaps
-		TArray<AActor*> overlappingActors;
-		BuildingToPlace->GetOverlappingActors(overlappingActors);
-		if (overlappingActors.Num() > 0)
+		if (HitResult.bBlockingHit == false)
 		{
+			FVector origin, extent;
+			BuildingToPlace->GetActorBounds(true, origin, extent);
+			BuildingToPlace->SetActorLocation(WorldOrigin + WorldDirection * 7000);
 			BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 		}
 		else
 		{
-			BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
+			FVector origin, extent;
+			BuildingToPlace->GetActorBounds(true, origin, extent);
+			BuildingToPlace->SetActorLocation(HitResult.Location + FVector(0.f, 0.f, extent.Z));
 
-			if (GetWorld()->GetFirstPlayerController()->WasInputKeyJustPressed(EKeys::LeftMouseButton))
+			// Check if Building to Place overlaps
+			TArray<AActor*> overlappingActors;
+			BuildingToPlace->GetOverlappingActors(overlappingActors);
+			if (overlappingActors.Num() > 0)
 			{
-				bBuildingMode = false;
-				BuildingToPlace->SetActorEnableCollision(true);
-				BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
-				BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-				BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
+				BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
+			}
+			else
+			{
+				BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
+
+				if (GetWorld()->GetFirstPlayerController()->WasInputKeyJustPressed(EKeys::LeftMouseButton))
+				{
+					bBuildingMode = false;
+					BuildingToPlace->SetActorEnableCollision(true);
+					BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
+					BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+					BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
+				}
 			}
 		}
 	}
