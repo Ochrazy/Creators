@@ -36,19 +36,6 @@ class ACreatorsGameMode : public AGameModeBase
 	 * @param NewPlayer	
 	 */
 	virtual void RestartPlayer(AController* NewPlayer) override;
-	
-	/** 
-	 * Modify the damage we want to apply to an actor.
-	 * 
-	  * @param Damage			The damage
-	  * @param DamagedActor		The actor we wish to damage
-	  * @param DamageEvent		The event that caused the damage
-	  * @param EventInstigator	
-	  * @param DamageCauser
-	  *
-	  * @returns The adjusted damage amount
-	  */
-	virtual float ModifyDamage(float Damage, AActor* DamagedActor, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const;
 
 	// End GameMode interface
 
@@ -61,26 +48,6 @@ class ACreatorsGameMode : public AGameModeBase
 	void FinishGame(ECreatorsTeam::Type InWinningTeam);
 
 	void ReturnToMenu();
-
-	/** 
-	 * Helper function to test teams (null = not in friendly team). 
-	 *
-	 * @param ActorA		First actor to test against
-	 * @param ActorB		Second actor to test against
-	 *
-	 * @return true if the two actors are on the same team.
-	 */
-	static bool OnFriendlyTeam(const AActor* ActorA, const AActor* ActorB);
-
-	/** 
-	 * Helper function to test teams (null = not in friendly team). 
-	 *
-	 * @param ActorA		First actor to test against
-	 * @param ActorB		Second actor to test against
-	 *
-	 * @return true if the two actors are on opposing teams.
-	 */	
-	static bool OnEnemyTeam(const AActor* ActorA, const AActor* ActorB);
 
 	/** Helper method for UI, to exit game. */
 	void ExitGame();

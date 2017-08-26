@@ -183,26 +183,15 @@ void ACreatorsPlayerController::SetCameraTarget(const FVector& CameraTarget)
 AActor* ACreatorsPlayerController::GetFriendlyTarget(const FVector2D& ScreenPoint, FVector& WorldPoint) const
 {
 	FHitResult Hit = InteractionComponent->GetLastRawHitResult();
-
-	if (!ACreatorsGameMode::OnEnemyTeam(Hit.GetActor(), this))
-	{
-		WorldPoint = Hit.ImpactPoint;
-		return Hit.GetActor();
-	}
-
-
-	return NULL;
+	
+	WorldPoint = Hit.ImpactPoint;
+	return Hit.GetActor();
 }
 
 void ACreatorsPlayerController::SetIgnoreInput(bool bIgnore)
 {
 	bIgnoreInput = bIgnore;
 }
-
-uint8 ACreatorsPlayerController::GetTeamNum() const
-{
-	return ECreatorsTeam::Player;
-};
 
 void ACreatorsPlayerController::SetSelectedActor(AActor* NewSelectedActor, const FVector& NewPosition)
 {

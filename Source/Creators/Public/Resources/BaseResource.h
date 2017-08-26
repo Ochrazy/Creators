@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CreatorsBaseActor.h"
 #include "BaseResource.generated.h"
 
 UCLASS()
-class CREATORS_API ABaseResource : public AActor
+class CREATORS_API ABaseResource : public ACreatorsBaseActor
 {
 	GENERATED_BODY()
 	
@@ -18,10 +19,6 @@ public:
 public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	/** Static Mesh Comp, Set In BP Default Properties */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
-		class UStaticMeshComponent* Mesh;
 
 	//////////////////////////////////////////////////////////////////////////
 	// reading data

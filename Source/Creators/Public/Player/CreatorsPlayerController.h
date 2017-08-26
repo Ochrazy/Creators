@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "CreatorsTeamInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "CreatorsPlayerController.generated.h"
 
@@ -13,7 +12,7 @@ class UCreatorsCameraComponent;
  * 
  */
 UCLASS()
-class CREATORS_API ACreatorsPlayerController : public APlayerController, public ICreatorsTeamInterface
+class CREATORS_API ACreatorsPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
@@ -35,10 +34,6 @@ protected:
 	// End PlayerController interface
 
 public:
-
-	// Begin CreatorsTeamInterface interface
-	virtual uint8 GetTeamNum() const override;
-	// End CreatorsTeamInterface interface
 
 	/** set desired camera position. */
 	void SetCameraTarget(const FVector& CameraTarget);

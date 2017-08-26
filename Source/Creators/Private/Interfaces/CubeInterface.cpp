@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Creators.h"
-#include "CreatorsTeamInterface.h"
+#include "CubeInterface.h"
 
 
 // This function does not need to be modified.
-UCreatorsTeamInterface::UCreatorsTeamInterface(const class FObjectInitializer& ObjectInitializer)
+UCubeInterface::UCubeInterface(const class FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 }

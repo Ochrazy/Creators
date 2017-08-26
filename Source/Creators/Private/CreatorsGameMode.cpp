@@ -3,7 +3,6 @@
 #include "Creators.h"
 //#include "CreatorsBuilding.h"
 #include "CreatorsSpectatorPawn.h"
-#include "CreatorsTeamInterface.h"
 #include "CreatorsGameMode.h"
 #include "CreatorsGameState.h"
 
@@ -69,40 +68,6 @@ void ACreatorsGameMode::RestartPlayer(AController* NewPlayer)
 	}
 }
 
-float ACreatorsGameMode::ModifyDamage(float Damage, AActor* DamagedActor, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const
-{
-	// no health changes after game is finished
-	if (GetGameplayState() == EGameplayState::Finished)
-	{
-		return 0.0f;
-	}
-	
-	if (Damage > 0.f)
-	{
-		const ICreatorsTeamInterface* VictimTeam = Cast<ICreatorsTeamInterface>(DamagedActor);
-		ICreatorsTeamInterface* InstigatorTeam = Cast<ICreatorsTeamInterface>(EventInstigator);
-		if (InstigatorTeam == nullptr)
-		{
-			InstigatorTeam = Cast<ICreatorsTeamInterface>(DamageCauser);
-		}
-
-		// skip friendly fire
-		if (InstigatorTeam && VictimTeam && InstigatorTeam->GetTeamNum() == VictimTeam->GetTeamNum())
-		{
-			return 0.0f;
-		}
-
-		// pawn's damage reduction
-	/*	const ACreatorsChar* DamagedChar = Cast<ACreatorsChar>(DamagedActor);
-		if (DamagedChar)
-		{
-			Damage -= DamagedChar->GetPawnData()->DamageReduction;
-		}*/
-	}
-
-	return Damage;
-}
-
 void ACreatorsGameMode::FinishGame(ECreatorsTeam::Type InWinningTeam)
 {
 	ACreatorsGameState* CurrentGameState = GetGameState<ACreatorsGameState>();
@@ -124,28 +89,6 @@ void ACreatorsGameMode::FinishGame(ECreatorsTeam::Type InWinningTeam)
 void ACreatorsGameMode::ReturnToMenu()
 {
 	GetWorld()->ServerTravel(FString("/Game/Maps/CreatorsMenu"));
-}
-
-bool ACreatorsGameMode::OnFriendlyTeam(const AActor* ActorA, const AActor* ActorB)
-{
-	const ICreatorsTeamInterface* TeamA = Cast<const ICreatorsTeamInterface>(ActorA);
-	const ICreatorsTeamInterface* TeamB = Cast<const ICreatorsTeamInterface>(ActorB);
-
-	if( (TeamA != nullptr && TeamA->GetTeamNum() == ECreatorsTeam::Unknown) || (TeamB != nullptr && TeamB->GetTeamNum() == ECreatorsTeam::Unknown))
-		return true;
-
-	return (TeamA != nullptr) && (TeamB != nullptr) && (TeamA->GetTeamNum() == TeamB->GetTeamNum());
-}
-
-bool ACreatorsGameMode::OnEnemyTeam(const AActor* ActorA, const AActor* ActorB)
-{
-	const ICreatorsTeamInterface* TeamA = Cast<const ICreatorsTeamInterface>(ActorA);
-	const ICreatorsTeamInterface* TeamB = Cast<const ICreatorsTeamInterface>(ActorB);
-
-	if( (TeamA != nullptr && TeamA->GetTeamNum() == ECreatorsTeam::Unknown) || (TeamB != nullptr && TeamB->GetTeamNum() == ECreatorsTeam::Unknown))
-		return false;
-
-	return (TeamA != nullptr) && (TeamB != nullptr) && (TeamA->GetTeamNum() != TeamB->GetTeamNum());
 }
 
 

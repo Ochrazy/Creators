@@ -4,7 +4,6 @@
 //#include "CreatorsBuilding_Brewery.h"
 #include "CreatorsGameState.h"
 #include "CreatorsTypes.h"
-#include "CreatorsTeamInterface.h"
 
 ACreatorsGameState::ACreatorsGameState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -46,18 +45,6 @@ int32 ACreatorsGameState::GetNumberOfLivePawns(TEnumAsByte<ECreatorsTeam::Type> 
 //	}
 //}
 
-void ACreatorsGameState::OnActorDamaged(AActor* InActor, float Damage, AController* EventInstigator)
-{
-	ICreatorsTeamInterface* const InstigatorTeam = Cast<ICreatorsTeamInterface>(EventInstigator);
-
-	// track damage done
-	// @todo, this is def not the place for this
-	if (InstigatorTeam)
-	{
-		FPlayerData& TeamData = PlayersData[InstigatorTeam->GetTeamNum()];
-		TeamData.DamageDone += FMath::TruncToInt(Damage);
-	}
-}
 
 //void ACreatorsGameState::OnCharSpawned(ACreatorsChar* InChar)
 //{

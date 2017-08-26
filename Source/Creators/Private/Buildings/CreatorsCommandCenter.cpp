@@ -4,6 +4,7 @@
 #include "CommandCenterWidget.h"
 #include "CreatorsBaseWidgetComponent.h"
 #include "CollectorBase.h"
+#include "GroundBuilding.h"
 #include "CreatorsCommandCenter.h"
 
 // Sets default values
@@ -19,6 +20,8 @@ ACreatorsCommandCenter::ACreatorsCommandCenter()
 	WidgetComponent->SetupAttachment(RootComponent);
 	WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 40.0f));
 	WidgetComponent->SetVisibility(true);
+
+	SetCubeNumber(GetUniqueID());
 }
 
 // Called when the game starts or when spawned
@@ -59,7 +62,7 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 			BuildingToPlace->SetActorLocation(WorldOrigin + WorldDirection * 7000);
 			BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 		}
-		else
+		else 
 		{
 			FVector origin, extent;
 			BuildingToPlace->GetActorBounds(true, origin, extent);
@@ -68,7 +71,8 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 			// Check if Building to Place overlaps
 			TArray<AActor*> overlappingActors;
 			BuildingToPlace->GetOverlappingActors(overlappingActors);
-			if (overlappingActors.Num() > 0)
+			AGroundBuilding* Ground = Cast<AGroundBuilding>(HitResult.GetActor());
+			if (overlappingActors.Num() > 0 || !Ground || Ground->GetCubeNumber() != GetCubeNumber())
 			{
 				BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 			}
@@ -97,6 +101,7 @@ void ACreatorsCommandCenter::EnterBuildingMode()
 	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(BuildingToPlaceClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
 	if (BuildingToPlace.IsValid())
 	{
+		BuildingToPlace->SetCubeNumber(GetCubeNumber());
 		bBuildingMode = true;
 		BuildingToPlace->SetActorEnableCollision(true);
 		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;

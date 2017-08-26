@@ -63,14 +63,6 @@ public:
 	 */
 //	void OnCharSpawned(ACreatorsChar* InChar);
 
-	/** 
-	 * Notification that an actor was damaged. 
-	 * 
-	 * @param	InChar	The character that has died.
-	 * @param	Damage	The amount of damage inflicted.
-	 * @param	InChar	The controller that inflicted the damage.
-	 */
-	void OnActorDamaged(AActor* InActor, float Damage, AController* EventInstigator);
 	
 	/** 
 	 * Get a team's data. 

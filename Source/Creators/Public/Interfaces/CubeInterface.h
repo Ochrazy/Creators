@@ -2,19 +2,19 @@
 
 #pragma once
 
-#include "CreatorsTeamInterface.generated.h"
+#include "CubeInterface.generated.h"
 
 /** Interface for actors which can be associated with teams */
 UINTERFACE()
-class UCreatorsTeamInterface : public UInterface
+class UCubeInterface : public UInterface
 {
 	GENERATED_UINTERFACE_BODY()
 };
 
-class ICreatorsTeamInterface
+class ICubeInterface
 {
 	GENERATED_IINTERFACE_BODY()
 
-		/** returns the team number of the actor */
-		virtual uint8 GetTeamNum() const = 0;
+	/** returns the cube number of the actor */
+	virtual uint32 GetCubeNumber() const = 0;
 };

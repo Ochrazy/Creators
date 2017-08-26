@@ -5,10 +5,12 @@
 #include "GameFramework/Actor.h"
 #include "Interfaces/CreatorsInputInterface.h"
 #include "Interfaces/CreatorsSelectionInterface.h"
+#include "Interfaces/CubeInterface.h"
+#include "CreatorsBaseActor.h"
 #include "Building.generated.h"
 
 UCLASS()
-class CREATORS_API ABuilding : public AActor, public ICreatorsInputInterface, public ICreatorsSelectionInterface
+class CREATORS_API ABuilding : public ACreatorsBaseActor, public ICreatorsInputInterface, public ICreatorsSelectionInterface, public ICubeInterface
 {
 	GENERATED_BODY()
 	
@@ -23,6 +25,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// Begin CubeInterface interface
+	virtual uint32 GetCubeNumber() const override;
+	// End CubeInterface interface
 
 	virtual bool OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor) override;
 	virtual bool OnSelectionGained_Implementation() override;
@@ -42,13 +48,14 @@ public:
 	/** receive input: swipe finished (world space, not screen space) */
 	virtual void OnInputSwipeReleased_Implementation(const FVector& DeltaPosition, float DownTime) override;
 
-	/** Static Mesh Comp, Set In BP Default Properties */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
-		class UStaticMeshComponent* Mesh;
-
 	UPROPERTY(EditAnywhere)
 		UMaterialInterface* Material;
 
 	TWeakObjectPtr<UMaterialInstanceDynamic> DynMaterial;
+
+	void SetCubeNumber(uint32 cubeNumber);
 	
+protected:
+	UPROPERTY(EditAnywhere)
+		uint32 CurrentCubeNumber;
 };
