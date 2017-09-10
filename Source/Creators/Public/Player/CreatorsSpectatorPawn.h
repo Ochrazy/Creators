@@ -35,6 +35,9 @@ public:
 
 	/** Handles the mouse scrolling up. */
 	void OnMouseScrollDown();
+
+	void MoveIn(float Val);
+	void MoveOut(float Val);
 	
 	/* Returns a pointer to the Creators camera component the pawn has. */
 	UCreatorsCameraComponent* GetCreatorsCameraComponent();

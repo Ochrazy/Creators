@@ -12,4 +12,5 @@ AGroundBuilding::AGroundBuilding()
 	Mesh->SetMobility(EComponentMobility::Static);
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
 	Mesh->SetCollisionResponseToChannel(COLLISION_FLOOR, ECollisionResponse::ECR_Block);
+	Mesh->SetCollisionResponseToChannel(COLLISION_PANCAMERA, ECollisionResponse::ECR_Block);
 }

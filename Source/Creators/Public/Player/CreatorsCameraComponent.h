@@ -43,6 +43,9 @@ public:
 	 * @param	Val		Amount to move
 	 */
 	void MoveRight( float Val );
+
+	void MoveIn(float Val);
+	void MoveOut(float Val);
 	
 	/*
 	 * Exclude an area from the mouse scroll movement update. (This will be reset at the end of each update).

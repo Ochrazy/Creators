@@ -34,6 +34,9 @@ void ACreatorsSpectatorPawn::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACreatorsSpectatorPawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACreatorsSpectatorPawn::MoveRight);
+
+	PlayerInputComponent->BindAxis("MoveIn", this, &ACreatorsSpectatorPawn::MoveIn);
+	PlayerInputComponent->BindAxis("MoveOut", this, &ACreatorsSpectatorPawn::MoveOut);
 }
 
 
@@ -46,6 +49,16 @@ void ACreatorsSpectatorPawn::MoveForward(float Val)
 void ACreatorsSpectatorPawn::MoveRight(float Val)
 {
 	CreatorsCameraComponent->MoveRight( Val );
+}
+
+void ACreatorsSpectatorPawn::MoveIn(float Val)
+{
+	CreatorsCameraComponent->MoveIn(Val);
+}
+
+void ACreatorsSpectatorPawn::MoveOut(float Val)
+{
+	CreatorsCameraComponent->MoveOut(Val);
 }
 
 UCreatorsCameraComponent* ACreatorsSpectatorPawn::GetCreatorsCameraComponent()

@@ -307,13 +307,13 @@ void ACreatorsPlayerController::OnSwipeUpdate(const FVector2D& ScreenPosition, f
 
 		ICreatorsInputInterface::Execute_OnInputSwipeUpdate(Selected, ScreenPosition3D - SwipeAnchor3D);
 	}
-	else
-	{
+	/*else
+	{*/
 		if (GetCameraComponent() != NULL)
 		{
 			GetCameraComponent()->OnSwipeUpdate(ScreenPosition);
 		}
-	}
+	//}
 
 	PrevSwipeScreenPosition = ScreenPosition;
 }
@@ -332,13 +332,13 @@ void ACreatorsPlayerController::OnSwipeReleased(const FVector2D& ScreenPosition,
 
 		ICreatorsInputInterface::Execute_OnInputSwipeReleased(Selected, ScreenPosition3D - SwipeAnchor3D, DownTime);
 	}
-	else
-	{
+	/*else
+	{*/
 		if (GetCameraComponent() != NULL)
 		{
 			GetCameraComponent()->OnSwipeReleased(ScreenPosition);
 		}
-	}
+	//}
 }
 
 void ACreatorsPlayerController::OnSwipeTwoPointsStarted(const FVector2D& ScreenPosition1, const FVector2D& ScreenPosition2, float DownTime)

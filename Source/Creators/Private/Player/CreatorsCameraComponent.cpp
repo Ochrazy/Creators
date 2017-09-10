@@ -166,6 +166,16 @@ void UCreatorsCameraComponent::MoveRight(float Val)
 	}
 }
 
+void UCreatorsCameraComponent::MoveIn(float Val)
+{
+	SetZoomLevel(ZoomAlpha - Val * (3.0 * GetWorld()->DeltaTimeSeconds));
+}
+
+void UCreatorsCameraComponent::MoveOut(float Val)
+{
+	SetZoomLevel(ZoomAlpha + Val * (3.0 * GetWorld()->DeltaTimeSeconds));
+}
+
 void UCreatorsCameraComponent::AddNoScrollZone( FBox InCoords )
 {
 	NoScrollZones.AddUnique( InCoords );
@@ -284,7 +294,7 @@ void UCreatorsCameraComponent::SetCameraTarget(const FVector& CameraTarget)
 
 void UCreatorsCameraComponent::SetZoomLevel(float NewLevel)
 {
-	ZoomAlpha = FMath::Clamp(NewLevel, MinZoomLevel, MaxZoomLevel);
+	ZoomAlpha = NewLevel;// FMath::Clamp(NewLevel, MinZoomLevel, MaxZoomLevel);
 }
 
 bool UCreatorsCameraComponent::OnSwipeStarted(const FVector2D& SwipePosition)
@@ -319,9 +329,13 @@ bool UCreatorsCameraComponent::OnSwipeUpdate(const FVector2D& SwipePosition)
 	if ((Controller != NULL) && (StartSwipeCoords.IsNearlyZero() == false ) )
 	{
 		FHitResult Hit;
-		if (Controller->GetHitResultAtScreenPosition(SwipePosition, COLLISION_PANCAMERA, true, Hit))
+		FVector WorldOrigin;
+		FVector WorldDirection;
+		UGameplayStatics::DeprojectScreenToWorld(GetWorld()->GetFirstPlayerController(), SwipePosition, WorldOrigin, WorldDirection);
+		//if (Controller->GetHitResultAtScreenPosition(SwipePosition, COLLISION_PANCAMERA, true, Hit))
 		{
-			FVector NewSwipeCoords = Hit.ImpactPoint;
+			FVector NewSwipeCoords = FCreatorsHelpers::IntersectRayWithPlane(WorldOrigin, WorldDirection, FPlane(StartSwipeCoords, FVector(0, 0, 1)));
+			//FVector NewSwipeCoords = Hit.ImpactPoint;
 			FVector Delta = StartSwipeCoords - NewSwipeCoords;
 			// Flatten Z axis - we are not interested in that.
 			Delta.Z = 0.0f;
@@ -350,9 +364,14 @@ bool UCreatorsCameraComponent::OnSwipeReleased(const FVector2D& SwipePosition)
 		if (Controller)
 		{
 			FHitResult Hit;
-			if (Controller->GetHitResultAtScreenPosition(SwipePosition, COLLISION_PANCAMERA, true, Hit))
+			FVector WorldOrigin;
+			FVector WorldDirection;
+			UGameplayStatics::DeprojectScreenToWorld(GetWorld()->GetFirstPlayerController(), SwipePosition, WorldOrigin, WorldDirection);
+
+			//if (Controller->GetHitResultAtScreenPosition(SwipePosition, COLLISION_PANCAMERA, true, Hit))
 			{
-				FVector EndSwipeCoords = Hit.ImpactPoint;
+				FVector EndSwipeCoords = FCreatorsHelpers::IntersectRayWithPlane(WorldOrigin, WorldDirection, FPlane(StartSwipeCoords, FVector(0, 0, 1)));
+				//FVector EndSwipeCoords = Hit.ImpactPoint;
 				bResult = true;
 			}
 		}
