@@ -26,4 +26,17 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 		float dir;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+		class UBehaviorTree* BehaviorTree;
+
+	void SetTarget(AActor* target);
+
+protected:
+	AActor* m_Target;
+
+private:
+	class UBehaviorTreeComponent* BehaviorComp;
+	class UBlackboardComponent* BlackboardComp;
+
 };
