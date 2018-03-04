@@ -26,6 +26,14 @@ void ACollector::AddResources(int inNumResources)
 	NumResources += inNumResources;
 }
 
+int ACollector::EmptyResources()
+{
+	int emptiedResources = NumResources;
+	NumResources = 0;
+
+	return emptiedResources;
+}
+
 int ACollector::GetNumResources()
 {
 	return NumResources;
@@ -41,14 +49,14 @@ void ACollector::SetNewBase(ACollectorBase* inBase)
 	}
 }
 
-void ACollector::DeliverResourcesToBase()
-{
-	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (pc)
-	{
-		pc->AddResources(NumResources);
-	}
-
-	Base->AddResources(NumResources);
-	NumResources = 0;
-}
+//void ACollector::DeliverResourcesToBase()
+//{
+//	ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
+//	if (pc)
+//	{
+//		pc->AddResources(NumResources);
+//	}
+//
+//	Base->AddResources(NumResources);
+//	NumResources = 0;
+//}

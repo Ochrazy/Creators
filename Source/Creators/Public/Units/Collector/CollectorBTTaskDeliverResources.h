@@ -24,4 +24,7 @@ public:
 	/** blackboard key selector */
 	UPROPERTY(EditAnywhere, Category = Blackboard)
 		struct FBlackboardKeySelector bMinerFullInventory;
+
+	UPROPERTY(EditAnywhere, Category = Blackboard)
+		struct FBlackboardKeySelector Base;
 };

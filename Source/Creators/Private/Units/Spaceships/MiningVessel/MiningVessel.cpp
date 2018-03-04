@@ -20,6 +20,7 @@ AMiningVessel::AMiningVessel()
 	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
 
 	m_Target = nullptr;
+	m_CurrentAvoidanceVector = FVector(0.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +52,9 @@ void AMiningVessel::Tick(float DeltaTime)
 		{
 			FHitResult HitResult;
 			FVector FlyToDirection = m_Target->GetActorLocation() - GetActorLocation();
-			AddActorWorldOffset(FlyToDirection * DeltaTime, true, &HitResult);
+			FlyToDirection.Normalize();
+			//AddActorWorldOffset(500 * FlyToDirection * DeltaTime, true, &HitResult);
+			AddActorLocalOffset(FVector(0, -dir * 500 * DeltaTime, 0), true, &HitResult);
 
 			if (HitResult.bBlockingHit)
 			{
@@ -64,32 +67,68 @@ void AMiningVessel::Tick(float DeltaTime)
 				{
 					if (HitResult.GetActor()->GetActorLocation().Z > GetActorLocation().Z)
 					{
-						AddActorLocalOffset(FVector(0.f, 0.f, -500.f) * DeltaTime, true);
+						m_CurrentAvoidanceVector = FVector(0.f, 0.f, -500.f);
+						AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true);
 					}
 					else if (HitResult.GetActor()->GetActorLocation().Z < GetActorLocation().Z)
 					{
+						m_CurrentAvoidanceVector = FVector(0.f, 0.f, 500.f);
 						AddActorLocalOffset(FVector(0.f, 0.f, 500.f) * DeltaTime, true);
 					}
 					else
 					{
-						AddActorLocalOffset(FVector(0.f, 0.f, FMath::FRandRange(-500.f, 500.f)) * DeltaTime, true);
+						m_CurrentAvoidanceVector = FVector(0.f, 0.f, FMath::FRandRange(-500.f, 500.f));
+						AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true);
 					}
 				}
 				else
 				{
-					if (HitResult.GetActor()->GetActorLocation().X > GetActorLocation().X)
+					FHitResult HitResult2;
+					if (m_CurrentAvoidanceVector.X == 0.f || HitResult.GetActor()->IsRootComponentMovable())
 					{
-						AddActorLocalOffset(FVector(-500.f, 0.f, 0.f) * DeltaTime, true);
-					}
-					else if (HitResult.GetActor()->GetActorLocation().X < GetActorLocation().X)
-					{
-						AddActorLocalOffset(FVector(500.f, 0.f, 0.f) * DeltaTime, true);
+						if (HitResult.GetActor()->GetActorLocation().X > GetActorLocation().X)
+						{
+							m_CurrentAvoidanceVector = FVector(-500.f, 0.f, 0.f);
+							AddActorLocalOffset(FVector(-500.f, 0.f, 0.f) * DeltaTime, true, &HitResult2);
+						}
+						else if (HitResult.GetActor()->GetActorLocation().X < GetActorLocation().X)
+						{
+							m_CurrentAvoidanceVector = FVector(500.f, 0.f, 0.f);
+							AddActorLocalOffset(FVector(500.f, 0.f, 0.f) * DeltaTime, true, &HitResult2);
+						}
+						else
+						{
+							m_CurrentAvoidanceVector = FVector(FMath::FRandRange(-500.f, 500.f), 0.f, 0.f);
+							AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true, &HitResult2);
+						}
 					}
 					else
+						AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true, &HitResult2);
+
+					// Try Up/Down
+					if (HitResult2.bBlockingHit)
 					{
-						AddActorLocalOffset(FVector(FMath::FRandRange(-500.f, 500.f), 0.f, 0.f) * DeltaTime, true);
+						if (HitResult.GetActor()->GetActorLocation().Z > GetActorLocation().Z)
+						{
+							m_CurrentAvoidanceVector = FVector(0.f, 0.f, -500.f);
+							AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true);
+						}
+						else if (HitResult.GetActor()->GetActorLocation().Z < GetActorLocation().Z)
+						{
+							m_CurrentAvoidanceVector = FVector(0.f, 0.f, 500.f);
+							AddActorLocalOffset(FVector(0.f, 0.f, 500.f) * DeltaTime, true);
+						}
+						else
+						{
+							m_CurrentAvoidanceVector = FVector(0.f, 0.f, FMath::FRandRange(-500.f, 500.f));
+							AddActorLocalOffset(m_CurrentAvoidanceVector * DeltaTime, true);
+						}
 					}
 				}
+			}
+			else
+			{
+				m_CurrentAvoidanceVector = FVector(0.f, 0.f, 0.f);
 			}
 		}
 	}

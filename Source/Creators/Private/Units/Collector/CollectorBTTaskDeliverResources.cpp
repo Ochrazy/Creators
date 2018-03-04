@@ -4,6 +4,7 @@
 #include "CollectorBTTaskDeliverResources.h"
 #include "CollectorAIController.h"
 #include "Collector.h"
+#include "CollectorBase.h"
 
 /* AI Module includes */
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -27,6 +28,7 @@ void UCollectorBTTaskDeliverResources::InitializeFromAsset(UBehaviorTree& Asset)
 	if (BBAsset)
 	{
 		bMinerFullInventory.ResolveSelectedKey(*BBAsset);
+		Base.ResolveSelectedKey(*BBAsset);
 	}
 	else
 	{
@@ -44,9 +46,23 @@ EBTNodeResult::Type UCollectorBTTaskDeliverResources::ExecuteTask(UBehaviorTreeC
 		ACollector* collector = Cast<ACollector>(caiController->GetPawn());
 		if (collector)
 		{
-			collector->DeliverResourcesToBase();
-			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(bMinerFullInventory.GetSelectedKeyID(), false);
-			return EBTNodeResult::Succeeded;
+			ACollectorBase* collectorBase = Cast<ACollectorBase>(OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Object>(Base.GetSelectedKeyID()));
+			if (collectorBase == nullptr)
+				return EBTNodeResult::Failed;
+			else
+			{
+				int numResources = collector->EmptyResources();
+				collectorBase->AddResources(numResources);
+
+				ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
+				if (pc)
+				{
+					pc->AddResources(numResources);
+				}
+
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(bMinerFullInventory.GetSelectedKeyID(), false);
+				return EBTNodeResult::Succeeded;
+			}
 		}
 		else return EBTNodeResult::Failed;
 	}

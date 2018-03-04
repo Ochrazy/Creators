@@ -30,13 +30,16 @@ public:
 		void AddResources(int inNumResources);
 
 	UFUNCTION(BlueprintCallable, Category = Resources)
+		int EmptyResources();
+
+	UFUNCTION(BlueprintCallable, Category = Resources)
 		int GetNumResources();
 
 	UFUNCTION(BlueprintCallable, Category = Resources)
 		void SetNewBase(class ACollectorBase* inBase);
 
-	UFUNCTION(BlueprintCallable, Category = Resources)
-		void DeliverResourcesToBase();
+	//UFUNCTION(BlueprintCallable, Category = Resources)
+	//	void DeliverResourcesToBase();
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 		class UBehaviorTree* BehaviorTree;

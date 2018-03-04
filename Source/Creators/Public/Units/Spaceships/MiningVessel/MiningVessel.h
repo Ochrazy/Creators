@@ -39,4 +39,6 @@ private:
 	class UBehaviorTreeComponent* BehaviorComp;
 	class UBlackboardComponent* BlackboardComp;
 
+	FVector m_CurrentAvoidanceVector;
+
 };

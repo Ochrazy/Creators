@@ -84,9 +84,9 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 				{
 					bBuildingMode = false;
 					BuildingToPlace->SetActorEnableCollision(true);
-					BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
-					BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-					BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
+					Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->bGenerateOverlapEvents = true;
+					Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+					Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionProfileName(FName("BlockAllDynamic"));
 				}
 			}
 		}
@@ -104,9 +104,9 @@ void ACreatorsCommandCenter::EnterBuildingMode()
 		BuildingToPlace->SetCubeNumber(GetCubeNumber());
 		bBuildingMode = true;
 		BuildingToPlace->SetActorEnableCollision(true);
-		BuildingToPlace->GetRootPrimitiveComponent()->bGenerateOverlapEvents = true;
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		BuildingToPlace->GetRootPrimitiveComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->bGenerateOverlapEvents = true;
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 	}
 }
