@@ -23,6 +23,10 @@ public:
 	/* Building To Place*/
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<ABuilding> BuildingToPlaceClass;
+
+	/* Building To Place*/
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<ABuilding> ForesterClass;
 	
 protected:
 
@@ -33,7 +37,13 @@ protected:
 		class UCreatorsBaseWidgetComponent* WidgetComponent;
 
 	UFUNCTION(BlueprintCallable, Category = UI)
-		void EnterBuildingMode();
+		void EnterBuildingMode(TSubclassOf<ABuilding> buildingClass);
+
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void BuildingModeCollector();
+
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void BuildingModeForester();
 
 	TWeakObjectPtr<class ABuilding> BuildingToPlace;
 

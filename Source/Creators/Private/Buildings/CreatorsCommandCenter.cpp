@@ -32,7 +32,10 @@ void ACreatorsCommandCenter::BeginPlay()
 	// Add Delegates
 	UCommandCenterWidget* ccWidget = Cast<UCommandCenterWidget>(WidgetComponent->GetUserWidgetObject());
 	if (ccWidget)
-		ccWidget->CollectorBaseButton->OnClicked.AddDynamic(this, &ACreatorsCommandCenter::EnterBuildingMode);
+	{
+		ccWidget->CollectorBaseButton->OnClicked.AddDynamic(this, &ACreatorsCommandCenter::BuildingModeCollector);
+		ccWidget->ForesterLodgeButton->OnClicked.AddDynamic(this, &ACreatorsCommandCenter::BuildingModeForester);
+	}
 }
 
 void ACreatorsCommandCenter::Tick(float DeltaTime)
@@ -93,12 +96,12 @@ void ACreatorsCommandCenter::Tick(float DeltaTime)
 	}
 }
 
-void ACreatorsCommandCenter::EnterBuildingMode()
+void ACreatorsCommandCenter::EnterBuildingMode(TSubclassOf<ABuilding> buildingClass)
 {
 	const FTransform transf = FTransform(FVector(0.0, 0.0, -9000.0));
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(BuildingToPlaceClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
+	BuildingToPlace = GetWorld()->SpawnActor<ABuilding>(buildingClass, FVector(0.0, 0.0, -9000.0), FRotator(0.0), params);
 	if (BuildingToPlace.IsValid())
 	{
 		BuildingToPlace->SetCubeNumber(GetCubeNumber());
@@ -109,4 +112,14 @@ void ACreatorsCommandCenter::EnterBuildingMode()
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 	}
+}
+
+void ACreatorsCommandCenter::BuildingModeCollector()
+{
+	EnterBuildingMode(BuildingToPlaceClass);
+}
+
+void ACreatorsCommandCenter::BuildingModeForester()
+{
+	EnterBuildingMode(ForesterClass);
 }

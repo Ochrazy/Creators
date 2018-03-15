@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AICharacter.h"
 #include "GameFramework/Character.h"
 #include "Collector.generated.h"
 
 UCLASS()
-class CREATORS_API ACollector : public ACharacter
+class CREATORS_API ACollector : public AAICharacter
 {
 	GENERATED_BODY()
 
@@ -30,22 +31,15 @@ public:
 		void AddResources(int inNumResources);
 
 	UFUNCTION(BlueprintCallable, Category = Resources)
-		int EmptyResources();
+		void EmptyResources();
 
 	UFUNCTION(BlueprintCallable, Category = Resources)
 		int GetNumResources();
 
-	UFUNCTION(BlueprintCallable, Category = Resources)
-		void SetNewBase(class ACollectorBase* inBase);
-
 	//UFUNCTION(BlueprintCallable, Category = Resources)
 	//	void DeliverResourcesToBase();
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-		class UBehaviorTree* BehaviorTree;
-
 private:
 	int NumResources;
-	TWeakObjectPtr<ACollectorBase> Base;
 	
 };

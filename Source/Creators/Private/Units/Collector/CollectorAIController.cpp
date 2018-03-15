@@ -2,8 +2,7 @@
 
 #include "Creators.h"
 #include "CollectorAIController.h"
-#include "CollectorBase.h"
-#include "Collector.h"
+#include "AICharacter.h"
 
 /* AI Specific includes */
 #include "BehaviorTree/BehaviorTree.h"
@@ -11,37 +10,25 @@
 #include "BehaviorTree/BlackboardComponent.h"
 
 ACollectorAIController::ACollectorAIController(const class FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	//: Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
 {
 	BehaviorComp = ObjectInitializer.CreateDefaultSubobject<UBehaviorTreeComponent>(this, TEXT("BehaviorComp"));
 	BlackboardComp = ObjectInitializer.CreateDefaultSubobject<UBlackboardComponent>(this, TEXT("BlackboardComp"));
-
-	/* Match with the AI/CollectorBlackboard */
-	BaseKeyName = "Base";
 }
-
 
 void ACollectorAIController::Possess(class APawn* inCollector)
 {
 	Super::Possess(inCollector);
 
-	ACollector* Collector= Cast<ACollector>(inCollector);
-	if (Collector)
+	AAICharacter* aiChar= Cast<AAICharacter>(inCollector);
+	if (aiChar)
 	{
-		if (Collector->BehaviorTree->BlackboardAsset)
+		if (aiChar->BehaviorTree->BlackboardAsset)
 		{
-			BlackboardComp->InitializeBlackboard(*Collector->BehaviorTree->BlackboardAsset);
+			BlackboardComp->InitializeBlackboard(*aiChar->BehaviorTree->BlackboardAsset);
 		}
 
-		BehaviorComp->StartTree(*Collector->BehaviorTree);
-	}
-}
-
-void ACollectorAIController::SetNewBase(ACollectorBase* inBase)
-{
-	if (BlackboardComp)
-	{
-		BlackboardComp->SetValueAsObject(BaseKeyName, inBase);
+		BehaviorComp->StartTree(*aiChar->BehaviorTree);
 	}
 }
 

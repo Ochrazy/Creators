@@ -4,21 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CommandCenterWidget.generated.h"
+#include "ForesterLodgeWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CREATORS_API UCommandCenterWidget : public UUserWidget
+class CREATORS_API UForesterLodgeWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
 	UPROPERTY(meta = (BindWidget))
-		UButton* CollectorBaseButton;
-
-	UPROPERTY(meta = (BindWidget))
-		UButton* ForesterLodgeButton;
+		UButton* ForesterButton;
+	
 	
 };

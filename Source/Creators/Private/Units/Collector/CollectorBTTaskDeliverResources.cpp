@@ -51,7 +51,7 @@ EBTNodeResult::Type UCollectorBTTaskDeliverResources::ExecuteTask(UBehaviorTreeC
 				return EBTNodeResult::Failed;
 			else
 			{
-				int numResources = collector->EmptyResources();
+				int numResources = collector->GetNumResources();
 				collectorBase->AddResources(numResources);
 
 				ACreatorsPlayerController* pc = (ACreatorsPlayerController*)UGameplayStatics::GetPlayerController(GetWorld(), 0);
@@ -59,6 +59,8 @@ EBTNodeResult::Type UCollectorBTTaskDeliverResources::ExecuteTask(UBehaviorTreeC
 				{
 					pc->AddResources(numResources);
 				}
+
+				collector->EmptyResources();
 
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(bMinerFullInventory.GetSelectedKeyID(), false);
 				return EBTNodeResult::Succeeded;
