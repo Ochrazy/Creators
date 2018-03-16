@@ -26,8 +26,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly)
+		UInstancedStaticMeshComponent* Trees;
+
 protected:
 	virtual void OnDepleted() override;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+		float Age;
 	
 	
 };

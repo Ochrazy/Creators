@@ -37,21 +37,32 @@ EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent
 	FVector plantSpot = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(NearestPlantSpot.GetSelectedKeyID());
 
 	ACollectorAIController* caiController = Cast<ACollectorAIController>(OwnerComp.GetAIOwner());
-	if (caiController == nullptr)
-		return EBTNodeResult::Failed;
-	else
+	if (caiController)
 	{
 		AForester* forester = Cast<AForester>(caiController->GetPawn());
-		if (forester == nullptr)
-			return EBTNodeResult::Failed;
-		else
+		if (forester)
 		{
-			ATreeResource* treeResource;
-			treeResource = GetWorld()->SpawnActor<ATreeResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
+			TArray<AActor*> FoundActors;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATreeResource::StaticClass(), FoundActors);
 
-			return EBTNodeResult::Succeeded;
+			if (FoundActors.Num() == 0)
+			{
+				ATreeResource* treeResource;
+				treeResource = GetWorld()->SpawnActor<ATreeResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
+				if (treeResource)
+				{
+					treeResource->Trees->AddInstance(FTransform(FRotator(0.f), plantSpot - treeResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
+					return EBTNodeResult::Succeeded;
+				}
+			}
+			else
+			{
+				ATreeResource* treeResource = Cast<ATreeResource>(FoundActors[0]);
+				treeResource->Trees->AddInstance(FTransform(FRotator(0.f), plantSpot - treeResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
+			}
+
 		}
 	}
 
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }
