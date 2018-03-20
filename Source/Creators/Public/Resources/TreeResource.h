@@ -26,15 +26,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditDefaultsOnly)
-		UInstancedStaticMeshComponent* Trees;
-
 protected:
 	virtual void OnDepleted() override;
+
+public:
+	void Init(UInstancedStaticMeshComponent* inInstancedMesh, int inInstanceID);
 
 private:
 	UPROPERTY(VisibleAnywhere)
 		float Age;
-	
-	
+
+	TWeakObjectPtr<UInstancedStaticMeshComponent> InstancedForestMesh;
+
+	int InstanceID;
 };

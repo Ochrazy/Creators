@@ -6,6 +6,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyAllTypes.h"
 #include "CollectorAIController.h"
 #include "Forester.h"
+#include "ForestResource.h"
 #include "TreeResource.h"
 
 UForesterBTTaskPlantTree::UForesterBTTaskPlantTree(const FObjectInitializer& ObjectInitializer)
@@ -34,8 +35,6 @@ void UForesterBTTaskPlantTree::InitializeFromAsset(UBehaviorTree& Asset)
 
 EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	FVector plantSpot = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(NearestPlantSpot.GetSelectedKeyID());
-
 	ACollectorAIController* caiController = Cast<ACollectorAIController>(OwnerComp.GetAIOwner());
 	if (caiController)
 	{
@@ -43,22 +42,24 @@ EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent
 		if (forester)
 		{
 			TArray<AActor*> FoundActors;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATreeResource::StaticClass(), FoundActors);
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AForestResource::StaticClass(), FoundActors);
 
+			FVector plantSpot = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(NearestPlantSpot.GetSelectedKeyID());
+
+			AForestResource* forestResource(nullptr);
 			if (FoundActors.Num() == 0)
-			{
-				ATreeResource* treeResource;
-				treeResource = GetWorld()->SpawnActor<ATreeResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
-				if (treeResource)
-				{
-					treeResource->Trees->AddInstance(FTransform(FRotator(0.f), plantSpot - treeResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
-					return EBTNodeResult::Succeeded;
-				}
+			{				
+				forestResource = GetWorld()->SpawnActor<AForestResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
 			}
 			else
 			{
-				ATreeResource* treeResource = Cast<ATreeResource>(FoundActors[0]);
-				treeResource->Trees->AddInstance(FTransform(FRotator(0.f), plantSpot - treeResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
+				forestResource = Cast<AForestResource>(FoundActors[0]);
+			}
+
+			if (forestResource)
+			{
+				forestResource->AddTree(FTransform(FRotator(0.f), plantSpot - forestResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
+				return EBTNodeResult::Succeeded;
 			}
 
 		}

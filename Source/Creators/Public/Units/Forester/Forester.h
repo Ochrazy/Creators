@@ -29,7 +29,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<class ATreeResource> TreeToSpawnClass;
+		TSubclassOf<class AForestResource> TreeToSpawnClass;
 
 private:
 	

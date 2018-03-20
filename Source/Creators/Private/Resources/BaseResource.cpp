@@ -26,13 +26,9 @@ void ABaseResource::Tick(float DeltaTime)
 
 }
 
-void ABaseResource::ResetResource(bool UnhideInGame)
+void ABaseResource::ResetResource()
 {
 	CurrentResources = GetClass()->GetDefaultObject<ABaseResource>()->CurrentResources;
-	if (UnhideInGame)
-	{
-		SetActorHiddenInGame(false);
-	}
 }
 
 int32 ABaseResource::RetrieveResources(int32 amount)

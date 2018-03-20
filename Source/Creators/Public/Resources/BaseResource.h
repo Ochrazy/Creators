@@ -36,7 +36,7 @@ public:
 
 	/** reset resource actor to reuse it again in game (it'll not unhide this actor) */
 	UFUNCTION(BlueprintCallable, Category = Resource)
-		void ResetResource(bool UnhideInGame = true);
+		void ResetResource();
 
 	/** reset resource actor to reuse it again in game (it'll not unhide this actor) */
 	UFUNCTION(BlueprintCallable, Category = Resource)
