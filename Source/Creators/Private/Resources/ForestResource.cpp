@@ -24,12 +24,13 @@ void AForestResource::BeginPlay()
 
 ATreeResource* AForestResource::AddTree(const FTransform& inTransform)
 {
-	auto TreeResource = GetWorld()->SpawnActor<ATreeResource>(ATreeResource::StaticClass(), inTransform);
+	auto TreeResource = GetWorld()->SpawnActorDeferred<ATreeResource>(ATreeResource::StaticClass(), inTransform);
 	if (TreeResource != nullptr)
 	{
 		TreeResources.Add(TreeResource);
 		Trees->AddInstance(inTransform);
 		TreeResource->Init(Trees, TreeResources.Num()-1);
+		TreeResource->FinishSpawning(inTransform);
 	}
 
 	return TreeResource;
