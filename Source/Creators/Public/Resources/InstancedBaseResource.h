@@ -32,11 +32,12 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere)
-		UHierarchicalInstancedStaticMeshComponent* Trees[4];
+		TArray<UHierarchicalInstancedStaticMeshComponent*> Trees;
 
 	std::vector<float> age;
 
 	int whatToUpdate;
+	float angle;
 	
 	UFUNCTION()
 		void timerHandle(int index);

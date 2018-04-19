@@ -14,12 +14,13 @@ AInstancedBaseResource::AInstancedBaseResource()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	Trees[0] = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees"));
-	Trees[1] = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees1"));
-	Trees[2] = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees2"));
-	Trees[3] = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees3"));
+	Trees.Add(CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees")));
+	Trees.Add(CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees1")));
+	Trees.Add(CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees2")));
+	Trees.Add(CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trees3")));
 
 	whatToUpdate = 0;
+	angle = 0;
 
 	this->Mesh->SetActive(false);
 }
@@ -34,9 +35,9 @@ void AInstancedBaseResource::BeginPlay()
 
 	float scaling = 20;
 
-	for (int x = 0; x < 100; x++)
+	for (int x = 0; x < 1000; x++)
 	{
-		for (int y = 0; y < 100; y++)
+		for (int y = 0; y < 200; y++)
 		{
 			transf.SetTranslation(FVector(GetActorLocation().X + (x * scaling), GetActorLocation().Y + (y * scaling), GetActorLocation().Z));
 			transf.SetScale3D(FVector(0.1f, 0.1f, 0.1f));
@@ -74,6 +75,8 @@ void AInstancedBaseResource::BeginPlay()
 			Trees[3]->AddInstance(transf);
 		}
 	}
+
+
 
 	//FTimerDelegate TimerDel;
 	//FTimerHandle TimerHandle;
@@ -113,79 +116,160 @@ void AInstancedBaseResource::timerHandle(int index)
 	}*/
 }
 
+template<typename F>
+struct FInstanceTransformMatrix
+{
+	F InstanceTransform1[4];
+	F InstanceTransform2[4];
+	F InstanceTransform3[4];
+
+	friend FArchive& operator<<(FArchive& Ar, FInstanceTransformMatrix& V)
+	{
+		return Ar
+			<< V.InstanceTransform1[0]
+			<< V.InstanceTransform1[1]
+			<< V.InstanceTransform1[2]
+			<< V.InstanceTransform1[3]
+
+			<< V.InstanceTransform2[0]
+			<< V.InstanceTransform2[1]
+			<< V.InstanceTransform2[2]
+			<< V.InstanceTransform2[3]
+
+			<< V.InstanceTransform3[0]
+			<< V.InstanceTransform3[1]
+			<< V.InstanceTransform3[2]
+			<< V.InstanceTransform3[3];
+	}
+
+};
+
+template<typename Tag, typename Tag::type M>
+struct Rob {
+	friend typename Tag::type get(Tag) {
+		return M;
+	}
+};
+
+// tag used to access A::a
+struct A_f {
+	typedef FStaticMeshInstanceData* FStaticMeshInstanceBuffer::*type;
+	friend type get(A_f);
+};
+
+template struct Rob<A_f, &FStaticMeshInstanceBuffer::InstanceData>;
+
 // Called every frame
 void AInstancedBaseResource::Tick(float DeltaTime)
 {
-	//auto start = std::chrono::high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
+	if (Trees[whatToUpdate]->ClusterTreePtr.IsValid())
+	{
+		angle += DeltaTime;
 
-	/*for (int whatToUpdate = 0; whatToUpdate < 4; ++whatToUpdate)
-	{*/
+		float cosA = 0.1f * cos(angle);
+		float sinA = 0.1f * sin(angle);
+
+		/*for (int whatToUpdate = 0; whatToUpdate < 4; ++whatToUpdate)
+		{*/
+
 		int count = Trees[whatToUpdate]->GetInstanceCount();
+		FStaticMeshInstanceData* InstanceData = Trees[whatToUpdate]->PerInstanceRenderData->InstanceBuffer.*get(A_f());
 
+		FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));
+		FInstanceTransformMatrix<FFloat16>* itarray =
+			const_cast<FInstanceTransformMatrix<FFloat16>*>(reinterpret_cast<const FInstanceTransformMatrix<FFloat16>*>(InstanceData->GetTransformResourceArray()->GetResourceData()));
+		int indexReordered = 0;
+		TArray<int32>& reorderArray = Trees[whatToUpdate]->InstanceReorderTable;
 		for (int i = 0; i < (count); i++)
 		{
-			age[i] += DeltaTime;
-			//if (age[i] < 6.f)
+			//indexReordered = reorderArray[i];
+			if(i < Trees[whatToUpdate]->SortedInstances.Num())
+				age[Trees[whatToUpdate]->SortedInstances[i]] += DeltaTime;
+			else age[i] += DeltaTime;
+
+			if (age[i] < 6.f)
 			{
 				/*FTransform oldTrans;
 				Trees[whatToUpdate]->GetInstanceTransform(i, oldTrans, false);
 				oldTrans.AddToTranslation(FVector(0.f, 100.f * DeltaTime, 0.f));
 				Trees[whatToUpdate]->UpdateInstanceTransform(i, oldTrans, false, false, true);	*/
+				//Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[3][1] += 100.f * DeltaTime;
+				rarray[i].X += 100.f * DeltaTime;
+				/*	rarray[i].Y += 50.f * DeltaTime;
+					rarray[i].Z += 25.f * DeltaTime;*/
 
-				Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[3][1] += 100.f * DeltaTime;
+					/*	itarray[i].InstanceTransform1[0] = cosA;
+						itarray[i].InstanceTransform1[1] = -sinA;
+						itarray[i].InstanceTransform2[0] = sinA;
+						itarray[i].InstanceTransform2[1] = cosA;*/
+						/*	Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[0][0] = cosA;
+							Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[0][1] = -sinA;
+							Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[1][0] = sinA;
+							Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[1][1] = cosA;*/
 
-				//NewInstanceBounds = Trees[whatToUpdate]->GetStaticMesh()->GetBounds().GetBox().MoveTo(Trees[whatToUpdate]->PerInstanceSMData[Trees[whatToUpdate]->SortedInstances[i]].Transform.GetOrigin());
-				//Trees[whatToUpdate]->UnbuiltInstanceBounds += NewInstanceBounds;
-				//bounds[Trees[whatToUpdate]->SortedInstances[i]] = NewInstanceBounds;
+							//NewInstanceBounds = Trees[whatToUpdate]->GetStaticMesh()->GetBounds().GetBox().MoveTo(Trees[whatToUpdate]->PerInstanceSMData[Trees[whatToUpdate]->SortedInstances[i]].Transform.GetOrigin());
+							//Trees[whatToUpdate]->UnbuiltInstanceBounds += NewInstanceBounds;
+							//bounds[Trees[whatToUpdate]->SortedInstances[i]] = NewInstanceBounds;
 
 
-				//// Update existing BodyInstance
-				//FTransform tran;
-				//tran.SetLocation(FVector(Trees->PerInstanceSMData[i].Transform.M[3][0], 
-				//	Trees->PerInstanceSMData[i].Transform.M[3][1], Trees->PerInstanceSMData[i].Transform.M[3][2]));
+							//// Update existing BodyInstance
+							//FTransform tran;
+							//tran.SetLocation(FVector(Trees->PerInstanceSMData[i].Transform.M[3][0], 
+							//	Trees->PerInstanceSMData[i].Transform.M[3][1], Trees->PerInstanceSMData[i].Transform.M[3][2]));
 
-				//Trees->InstanceBodies[i]->SetBodyTransform(tran, TeleportFlagToEnum(true));
+							//Trees->InstanceBodies[i]->SetBodyTransform(tran, TeleportFlagToEnum(true));
 
-			/*	Trees->InstanceBodies[i]->UpdateBodyScale(FVector(Trees->PerInstanceSMData[i].Transform.M[0][0],
-					Trees->PerInstanceSMData[i].Transform.M[1][1], Trees->PerInstanceSMData[i].Transform.M[2][2]));*/
+						/*	Trees->InstanceBodies[i]->UpdateBodyScale(FVector(Trees->PerInstanceSMData[i].Transform.M[0][0],
+								Trees->PerInstanceSMData[i].Transform.M[1][1], Trees->PerInstanceSMData[i].Transform.M[2][2]));*/
 			}
 		}
+
 		for (auto& node : *Trees[whatToUpdate]->ClusterTreePtr.Get())
 		{
-			node.BoundMin.Y += 100.f * DeltaTime;
-			node.BoundMax.Y += 100.f * DeltaTime;
+			node.BoundMin.X += 100.f * DeltaTime;
+			node.BoundMax.X += 100.f * DeltaTime;
+
+			/*	node.BoundMin.Y += 50.f * DeltaTime;
+				node.BoundMax.Y += 50.f * DeltaTime;
+
+				node.BoundMin.Z += 25.f * DeltaTime;
+				node.BoundMax.Z += 25.f * DeltaTime;*/
 		}
 
-		if(Trees[whatToUpdate]->ClusterTreePtr.IsValid())
-			Trees[whatToUpdate]->BuiltInstanceBounds = FBox((*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMin, (*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMax);
+		Trees[whatToUpdate]->BuiltInstanceBounds = FBox((*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMin, (*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMax);
+
 
 		//delete[] bounds;
 
 		//if (!Trees[whatToUpdate]->IsAsyncBuilding())
-		{
+		//{
 			//Trees[whatToUpdate]->UnbuiltInstanceBoundsList.Add(std::move(Trees[whatToUpdate]->UnbuiltInstanceBounds));
 			//Trees[whatToUpdate]->BuiltInstanceBounds = std::move(Trees[whatToUpdate]->UnbuiltInstanceBounds);
 			//Trees[whatToUpdate]->BuildTreeIfOutdated(true, false);
-		}
+		//}
 		//Trees[whatToUpdate]->ClusterTreePtr.Get()..BoundMin = FVector(0,0,0);
 		/*Trees[whatToUpdate]->ReleasePerInstanceRenderData();
 		Trees[whatToUpdate]->InitPerInstanceRenderData(true);*/
 		//Trees->InitPerInstanceRenderData(true, Trees->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData();
-		
-		Trees[whatToUpdate]->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData(Trees[whatToUpdate], 0, count);
+
+		//Trees[whatToUpdate]->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData(Trees[whatToUpdate], 0, count);
+
+
 		Trees[whatToUpdate]->MarkRenderStateDirty();
 
 		//Trees->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData(Trees, Trees->PerInstanceRenderData->HitProxies, 0, 100, false);
 		//Trees[whatToUpdate]->MarkRenderStateDirty();
 		//UNavigationSystem::UpdateComponentInNavOctree(*Trees);
 
-	
+
 	//}
 
 		whatToUpdate++;
-		if (whatToUpdate > 3) whatToUpdate = 0;
+		if (whatToUpdate > 0) whatToUpdate = 0;
 
-	//auto end = std::chrono::high_resolution_clock::now();
-	//auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("valuesS: %d"), time.count()));
+		auto end = std::chrono::high_resolution_clock::now();
+		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("valuesS: %d"), time.count()));
+	}
 }
