@@ -31,6 +31,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class AForestResource> TreeToSpawnClass;
 
+	TWeakObjectPtr<AForestResource> ForestResource;
+
 private:
 	
 };

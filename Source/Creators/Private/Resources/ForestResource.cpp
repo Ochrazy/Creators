@@ -3,8 +3,8 @@
 #include "Creators.h"
 #include "ForestResource.h"
 #include "TreeResource.h"
+#include <chrono>
 #include "Runtime/Engine/Private/InstancedStaticMesh.h"
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 
 template<typename F>
 struct FInstanceTransformMatrix
@@ -104,9 +104,60 @@ void AForestResource::AddTree(const FTransform& inTransform)
 	return TreeResource;*/
 }
 
-void AForestResource::RemoveTree(ATreeResource* inTree)
+void AForestResource::RemoveTree(int inTreeID)
 {
+	int count = Trees->GetInstanceCount();
+	
+	if (count > 0)
+	{
+		// Remove by swap and pop -> Result is already reordered. 
+		// Does not preserve original order (Index of last instance changed)
+		// Way faster than reordering. Might need to update index if saved elsewhere.
+		std::iter_swap(age.begin() + inTreeID, age.end() - 1);
+		age.pop_back();
 
+		FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
+		InstanceData->SwapInstance(inTreeID, count - 1);
+		InstanceData->NullifyInstance(count - 1);
+
+		Trees->InstanceReorderTable.Pop();
+
+		Trees->PerInstanceSMData.RemoveAtSwap(inTreeID);
+		Trees->InstanceBodies[inTreeID]->TermBody();
+		Trees->InstanceBodies.RemoveAtSwap(inTreeID);
+
+		TreesToCut.Remove(inTreeID);	
+	}
+}
+
+FTreeInstance AForestResource::GetNearestTreeToCut(const FVector& originLocation) const
+{
+	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
+	FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));
+	
+	// Find Nearest Tree Instance
+	int nearestID = -1;
+	float nearestDist = 0.f;
+	
+	for (auto& treeID : TreesToCut)
+	{
+		if (nearestID == -1)
+		{
+			nearestID = treeID;
+			nearestDist = FVector::DistSquared(originLocation, FVector(rarray[treeID]));
+		}
+		else
+		{
+			float currentDist = FVector::DistSquared(originLocation, FVector(rarray[treeID]));
+			if (currentDist < nearestDist)
+			{
+				nearestID = treeID;
+				nearestDist = currentDist;
+			}
+		}
+	}
+
+	return FTreeInstance(nearestID, Trees->GetComponentLocation() + FVector(rarray[nearestID]));
 }
 
 // Called every frame
@@ -124,8 +175,9 @@ void AForestResource::Tick(float DeltaTime)
 			{
 				
 					age[i] += DeltaTime;
-					//if (age[i] > 8.f)
-					//{
+					if (age[i] > 8.f)
+					{
+						TreesToCut.Add(i);
 					//	// Remove by swap and pop -> Result is already reordered. 
 					//	// Does not preserve original order (Index of last instance changed)
 					//	// Way faster than reordering. Might need to update index if saved elsewhere.
@@ -142,7 +194,7 @@ void AForestResource::Tick(float DeltaTime)
 					//	
 					//	countBefore--;
 					//	i--;
-					//}
+					}
 			}
 
 
@@ -154,7 +206,7 @@ void AForestResource::Tick(float DeltaTime)
 			
 			for (int i = 0; i < (count); i++)
 			{
-				//if (age[i] < 6.f)
+				if (age[i] < 6.f)
 				{
 					rarray[Trees->InstanceReorderTable[i]].Z += 20.f * DeltaTime;
 					// Update existing BodyInstance

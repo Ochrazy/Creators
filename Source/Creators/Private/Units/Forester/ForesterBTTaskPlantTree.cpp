@@ -36,6 +36,7 @@ void UForesterBTTaskPlantTree::InitializeFromAsset(UBehaviorTree& Asset)
 EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	ACollectorAIController* caiController = Cast<ACollectorAIController>(OwnerComp.GetAIOwner());
+
 	if (caiController)
 	{
 		AForester* forester = Cast<AForester>(caiController->GetPawn());
@@ -50,6 +51,10 @@ EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent
 			if (FoundActors.Num() == 0)
 			{				
 				forestResource = GetWorld()->SpawnActor<AForestResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
+				forester->ForestResource = forestResource;
+				UBlackboardComponent* blackboardComp = caiController->GetBlackboardComp();
+				if (blackboardComp)
+					blackboardComp->SetValueAsObject("ForestResource", this);
 			}
 			else
 			{

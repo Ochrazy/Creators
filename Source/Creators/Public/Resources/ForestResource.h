@@ -8,7 +8,26 @@
 #include "GameFramework/Actor.h"
 #include "ForestResource.generated.h"
 
-class UHierarchicalInstancedStaticMeshComponent;
+USTRUCT(BlueprintType)
+struct FTreeInstance
+{
+	GENERATED_BODY()
+
+	FTreeInstance()
+		: ID(-1), Location(FVector())
+	{}
+
+	FTreeInstance(int inID, FVector inLocation)
+		: ID(inID), Location(inLocation)
+	{
+	}
+
+	UPROPERTY(EditAnywhere)
+		int ID;
+
+	UPROPERTY(EditAnywhere)
+		FVector Location;
+};
 
 UCLASS()
 class CREATORS_API AForestResource : public AActor
@@ -31,12 +50,16 @@ public:
 		void AddTree(const FTransform& inTransform);
 
 	UFUNCTION(BlueprintCallable)
-		void RemoveTree(ATreeResource* inTree);
+		void RemoveTree(int inTreeID);
+
+	UFUNCTION(BlueprintCallable)
+		FTreeInstance GetNearestTreeToCut(const FVector& originLocation) const;
 
 private:
 	UPROPERTY(EditAnywhere)
 		UInstancedStaticMeshComponent* Trees;
 
 	std::vector<float> age;
+	TSet<int> TreesToCut;
 	
 };
