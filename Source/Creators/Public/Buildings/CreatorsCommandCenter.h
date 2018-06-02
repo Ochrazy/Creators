@@ -30,7 +30,7 @@ public:
 
 	/* Building To Place*/
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<AActor> BlockClass;
+		TSubclassOf<ABuilding> BlockClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
 		TArray<class UStaticMeshComponent*> Blocks;
@@ -49,7 +49,7 @@ protected:
 		void LeaveBuildingMode();
 
 	UFUNCTION(BlueprintCallable, Category = UI)
-		void EnterBuildingMode(TSubclassOf<AActor> buildingClass);
+		void EnterBuildingMode(TSubclassOf<ABuilding> buildingClass);
 
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void BuildingModeCollector();
@@ -60,12 +60,15 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void BuildingModeBlock();
 
-	TWeakObjectPtr<AActor> BuildingToPlace;
+	TWeakObjectPtr<ABuilding> BuildingToPlace;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Cube)
 		class UStaticMeshComponent* CubeBounds;
 
 private:
-	bool bBuildingMode;
+	enum class BuildingMode { None, Normal, Block } CurrentBuildingMode;
 	UStaticMesh* BlockAsset;
+
+	void NormalBuildingModeTick();
+	void BlockBuildingModeTick();
 };
