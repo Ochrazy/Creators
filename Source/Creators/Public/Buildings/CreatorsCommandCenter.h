@@ -22,12 +22,21 @@ public:
 
 	/* Building To Place*/
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<ABuilding> BuildingToPlaceClass;
+		TSubclassOf<ABuilding> CollectorClass;
 
 	/* Building To Place*/
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<ABuilding> ForesterClass;
-	
+
+	/* Building To Place*/
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<AActor> BlockClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
+		TArray<class UStaticMeshComponent*> Blocks;
+
+	virtual void  OnConstruction(const FTransform& Transform) override;
+
 protected:
 
 	// Called when the game starts or when spawned
@@ -37,7 +46,10 @@ protected:
 		class UCreatorsBaseWidgetComponent* WidgetComponent;
 
 	UFUNCTION(BlueprintCallable, Category = UI)
-		void EnterBuildingMode(TSubclassOf<ABuilding> buildingClass);
+		void LeaveBuildingMode();
+
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void EnterBuildingMode(TSubclassOf<AActor> buildingClass);
 
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void BuildingModeCollector();
@@ -45,9 +57,15 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = UI)
 		void BuildingModeForester();
 
-	TWeakObjectPtr<class ABuilding> BuildingToPlace;
+	UFUNCTION(BlueprintCallable, Category = UI)
+		void BuildingModeBlock();
+
+	TWeakObjectPtr<AActor> BuildingToPlace;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Cube)
+		class UStaticMeshComponent* CubeBounds;
 
 private:
 	bool bBuildingMode;
-	
+	UStaticMesh* BlockAsset;
 };

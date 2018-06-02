@@ -20,5 +20,8 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 		UButton* ForesterLodgeButton;
+
+	UPROPERTY(meta = (BindWidget))
+		UButton* BlockButton;
 	
 };

@@ -64,7 +64,7 @@ AForestResource::AForestResource()
 void AForestResource::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AForestResource::AddTree(const FTransform& inTransform)

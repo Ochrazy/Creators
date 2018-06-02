@@ -53,8 +53,8 @@ void AMiningVessel::Tick(float DeltaTime)
 			FHitResult HitResult;
 			FVector FlyToDirection = m_Target->GetActorLocation() - GetActorLocation();
 			FlyToDirection.Normalize();
-			//AddActorWorldOffset(500 * FlyToDirection * DeltaTime, true, &HitResult);
-			AddActorLocalOffset(FVector(0, -dir * 500 * DeltaTime, 0), true, &HitResult);
+			AddActorWorldOffset(500 * FlyToDirection * DeltaTime, true, &HitResult);
+			//AddActorLocalOffset(FVector(0, -dir * 500 * DeltaTime, 0), true, &HitResult);
 
 			if (HitResult.bBlockingHit)
 			{

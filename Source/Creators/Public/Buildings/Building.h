@@ -5,12 +5,11 @@
 #include "GameFramework/Actor.h"
 #include "Interfaces/CreatorsInputInterface.h"
 #include "Interfaces/CreatorsSelectionInterface.h"
-#include "Interfaces/CubeInterface.h"
 #include "CreatorsBaseActor.h"
 #include "Building.generated.h"
 
 UCLASS()
-class CREATORS_API ABuilding : public ACreatorsBaseActor, public ICreatorsInputInterface, public ICreatorsSelectionInterface, public ICubeInterface
+class CREATORS_API ABuilding : public ACreatorsBaseActor, public ICreatorsInputInterface, public ICreatorsSelectionInterface
 {
 	GENERATED_BODY()
 	
@@ -25,10 +24,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Begin CubeInterface interface
-	virtual uint32 GetCubeNumber() const override;
-	// End CubeInterface interface
 
 	virtual bool OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor) override;
 	virtual bool OnSelectionGained_Implementation() override;
@@ -53,9 +48,4 @@ public:
 
 	TWeakObjectPtr<UMaterialInstanceDynamic> DynMaterial;
 
-	void SetCubeNumber(uint32 cubeNumber);
-	
-protected:
-	UPROPERTY(EditAnywhere)
-		uint32 CurrentCubeNumber;
 };

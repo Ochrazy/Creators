@@ -29,16 +29,6 @@ void ABuilding::Tick(float DeltaTime)
 
 }
 
-uint32 ABuilding::GetCubeNumber() const
-{
-	return CurrentCubeNumber;
-};
-
-void ABuilding::SetCubeNumber(uint32 cubeNumber)
-{
-	CurrentCubeNumber = cubeNumber;
-}
-
 bool ABuilding::OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor)
 {
 	return true;

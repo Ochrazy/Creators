@@ -6,6 +6,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "InstancedBaseResource.h"
+#include <future>
 
 // Sets default values
 AInstancedBaseResource::AInstancedBaseResource()
@@ -35,7 +36,7 @@ void AInstancedBaseResource::BeginPlay()
 
 	float scaling = 20;
 
-	for (int x = 0; x < 1000; x++)
+	for (int x = 0; x < 10; x++)
 	{
 		for (int y = 0; y < 200; y++)
 		{
@@ -76,8 +77,26 @@ void AInstancedBaseResource::BeginPlay()
 		}
 	}
 
+	constexpr int N = 100000000;
+	
+	auto _start = std::chrono::high_resolution_clock::now();
+	TArray<int> test;
+	test.Reserve(N);
+	for (unsigned int k = 0; k < N; ++k)
+	{
+		test.Add(k);
+	}
+	auto ds = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - _start)).count();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("valuesS: %d"), ds));
 
-
+	_start = std::chrono::high_resolution_clock::now();
+	int * bigarray = new int[N];
+	for (unsigned int k = 0; k < N; ++k)
+	{
+		bigarray[k] = k;
+	}
+	ds = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - _start)).count();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("valuesB: %d"), ds));
 	//FTimerDelegate TimerDel;
 	//FTimerHandle TimerHandle;
 	//TimerDel.BindUFunction(this, FName("timerHandle"), 1);
@@ -181,28 +200,35 @@ void AInstancedBaseResource::Tick(float DeltaTime)
 			const_cast<FInstanceTransformMatrix<FFloat16>*>(reinterpret_cast<const FInstanceTransformMatrix<FFloat16>*>(InstanceData->GetTransformResourceArray()->GetResourceData()));
 		int indexReordered = 0;
 		TArray<int32>& reorderArray = Trees[whatToUpdate]->InstanceReorderTable;
-		for (int i = 0; i < (count); i++)
+		//for (int i = 0; i < (count); i++)
+		//{
+		//	//indexReordered = reorderArray[i];
+		//	if (i < Trees[whatToUpdate]->SortedInstances.Num())
+		//		age[Trees[whatToUpdate]->SortedInstances[i]] += DeltaTime;
+		//	else age[i] += DeltaTime;
+		//}
+
+		//if (GetWorld()->GetTimeSeconds() - Trees[whatToUpdate]->LastRenderTimeOnScreen <= DeltaTime*2)
 		{
-			//indexReordered = reorderArray[i];
-			if(i < Trees[whatToUpdate]->SortedInstances.Num())
-				age[Trees[whatToUpdate]->SortedInstances[i]] += DeltaTime;
-			else age[i] += DeltaTime;
+			int count2 = count / 4;
+			auto future = std::async(std::launch::async, [count2, &rarray, DeltaTime, this, &itarray, cosA, sinA] {
+				for (int i2 = 0; i2 < (count2); i2++)
+				{
+					//if (age[i] < 6.f)
+					{
+						/*FTransform oldTrans;
+						Trees[whatToUpdate]->GetInstanceTransform(i, oldTrans, false);
+						oldTrans.AddToTranslation(FVector(0.f, 100.f * DeltaTime, 0.f));
+						Trees[whatToUpdate]->UpdateInstanceTransform(i, oldTrans, false, false, true);	*/
+						//Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[3][1] += 100.f * DeltaTime;
+						rarray[i2].X += 10.f * DeltaTime;
+						rarray[i2].Y += 50.f * DeltaTime;
+						rarray[i2].Z += 25.f * DeltaTime;
 
-			if (age[i] < 6.f)
-			{
-				/*FTransform oldTrans;
-				Trees[whatToUpdate]->GetInstanceTransform(i, oldTrans, false);
-				oldTrans.AddToTranslation(FVector(0.f, 100.f * DeltaTime, 0.f));
-				Trees[whatToUpdate]->UpdateInstanceTransform(i, oldTrans, false, false, true);	*/
-				//Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[3][1] += 100.f * DeltaTime;
-				rarray[i].X += 100.f * DeltaTime;
-				/*	rarray[i].Y += 50.f * DeltaTime;
-					rarray[i].Z += 25.f * DeltaTime;*/
-
-					/*	itarray[i].InstanceTransform1[0] = cosA;
-						itarray[i].InstanceTransform1[1] = -sinA;
-						itarray[i].InstanceTransform2[0] = sinA;
-						itarray[i].InstanceTransform2[1] = cosA;*/
+						itarray[i2].InstanceTransform1[0] = cosA;
+						itarray[i2].InstanceTransform1[1] = -sinA;
+						itarray[i2].InstanceTransform2[0] = sinA;
+						itarray[i2].InstanceTransform2[1] = cosA;
 						/*	Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[0][0] = cosA;
 							Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[0][1] = -sinA;
 							Trees[whatToUpdate]->PerInstanceSMData[i].Transform.M[1][0] = sinA;
@@ -222,23 +248,81 @@ void AInstancedBaseResource::Tick(float DeltaTime)
 
 						/*	Trees->InstanceBodies[i]->UpdateBodyScale(FVector(Trees->PerInstanceSMData[i].Transform.M[0][0],
 								Trees->PerInstanceSMData[i].Transform.M[1][1], Trees->PerInstanceSMData[i].Transform.M[2][2]));*/
-			}
+					}
+				}
+			});
+
+			
+
+			auto future2 = std::async(std::launch::async, [count, count2, &rarray, DeltaTime, this, &itarray, cosA, sinA] {
+				for (int i2 = count2; i2 < (count2*2); i2++)
+				{
+						rarray[i2].X += 10.f * DeltaTime;
+						rarray[i2].Y += 50.f * DeltaTime;
+						rarray[i2].Z += 25.f * DeltaTime;
+
+						itarray[i2].InstanceTransform1[0] = cosA;
+						itarray[i2].InstanceTransform1[1] = -sinA;
+						itarray[i2].InstanceTransform2[0] = sinA;
+						itarray[i2].InstanceTransform2[1] = cosA;
+				}
+			});
+			
+			auto future3 = std::async(std::launch::async, [count, count2, &rarray, DeltaTime, this, &itarray, cosA, sinA] {
+				for (int i2 = count2*2; i2 < (count2*3); i2++)
+				{
+					rarray[i2].X += 10.f * DeltaTime;
+					rarray[i2].Y += 50.f * DeltaTime;
+					rarray[i2].Z += 25.f * DeltaTime;
+
+					itarray[i2].InstanceTransform1[0] = cosA;
+					itarray[i2].InstanceTransform1[1] = -sinA;
+					itarray[i2].InstanceTransform2[0] = sinA;
+					itarray[i2].InstanceTransform2[1] = cosA;
+				}
+			});
+
+			auto future4 = std::async(std::launch::async, [count, count2, &rarray, DeltaTime, this, &itarray, cosA, sinA] {
+				for (int i2 = count2*3; i2 < (count2 * 4); i2++)
+				{
+					rarray[i2].X += 10.f * DeltaTime;
+					rarray[i2].Y += 50.f * DeltaTime;
+					rarray[i2].Z += 25.f * DeltaTime;
+
+					itarray[i2].InstanceTransform1[0] = cosA;
+					itarray[i2].InstanceTransform1[1] = -sinA;
+					itarray[i2].InstanceTransform2[0] = sinA;
+					itarray[i2].InstanceTransform2[1] = cosA;
+				}
+			});
+
+			auto future5 = std::async(std::launch::async, [DeltaTime, this] {
+				auto start = std::chrono::high_resolution_clock::now();
+				for (auto& node : *Trees[whatToUpdate]->ClusterTreePtr.Get())
+				{
+					node.BoundMin.X += 10.f * DeltaTime;
+					node.BoundMax.X += 10.f * DeltaTime;
+
+					node.BoundMin.Y += 50.f * DeltaTime;
+					node.BoundMax.Y += 50.f * DeltaTime;
+
+					node.BoundMin.Z += 25.f * DeltaTime;
+					node.BoundMax.Z += 25.f * DeltaTime;
+				}
+				Trees[whatToUpdate]->BuiltInstanceBounds = FBox((*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMin, (*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMax);
+				auto end = std::chrono::high_resolution_clock::now();
+				auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+				//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("values2: %f"), time.count()));
+
+			});
+
+			future.get();
+			future2.get();
+			future3.get();
+			future4.get();
+			future5.get();
+			Trees[whatToUpdate]->MarkRenderStateDirty();
 		}
-
-		for (auto& node : *Trees[whatToUpdate]->ClusterTreePtr.Get())
-		{
-			node.BoundMin.X += 100.f * DeltaTime;
-			node.BoundMax.X += 100.f * DeltaTime;
-
-			/*	node.BoundMin.Y += 50.f * DeltaTime;
-				node.BoundMax.Y += 50.f * DeltaTime;
-
-				node.BoundMin.Z += 25.f * DeltaTime;
-				node.BoundMax.Z += 25.f * DeltaTime;*/
-		}
-
-		Trees[whatToUpdate]->BuiltInstanceBounds = FBox((*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMin, (*Trees[whatToUpdate]->ClusterTreePtr)[0].BoundMax);
-
 
 		//delete[] bounds;
 
@@ -256,8 +340,6 @@ void AInstancedBaseResource::Tick(float DeltaTime)
 		//Trees[whatToUpdate]->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData(Trees[whatToUpdate], 0, count);
 
 
-		Trees[whatToUpdate]->MarkRenderStateDirty();
-
 		//Trees->PerInstanceRenderData->InstanceBuffer.UpdateInstanceData(Trees, Trees->PerInstanceRenderData->HitProxies, 0, 100, false);
 		//Trees[whatToUpdate]->MarkRenderStateDirty();
 		//UNavigationSystem::UpdateComponentInNavOctree(*Trees);
@@ -265,11 +347,13 @@ void AInstancedBaseResource::Tick(float DeltaTime)
 
 	//}
 
+		auto end = std::chrono::high_resolution_clock::now();
+		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+		//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("valuesS: %d"), time.count()));
+
 		whatToUpdate++;
 		if (whatToUpdate > 0) whatToUpdate = 0;
 
-		auto end = std::chrono::high_resolution_clock::now();
-		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("valuesS: %d"), time.count()));
+		
 	}
 }
