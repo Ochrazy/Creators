@@ -51,7 +51,6 @@ EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent
 			if (FoundActors.Num() == 0)
 			{				
 				forestResource = GetWorld()->SpawnActor<AForestResource>(forester->TreeToSpawnClass, plantSpot, FRotator(0.0, 0.0, 0.0));
-				forester->ForestResource = forestResource;
 				UBlackboardComponent* blackboardComp = caiController->GetBlackboardComp();
 				if (blackboardComp)
 					blackboardComp->SetValueAsObject("ForestResource", this);
@@ -63,6 +62,7 @@ EBTNodeResult::Type UForesterBTTaskPlantTree::ExecuteTask(UBehaviorTreeComponent
 
 			if (forestResource)
 			{
+				forester->ForestResource = forestResource;
 				forestResource->AddTree(FTransform(FRotator(0.f), plantSpot - forestResource->GetActorLocation(), FVector(2.0, 2.0, 2.0)));
 				return EBTNodeResult::Succeeded;
 			}

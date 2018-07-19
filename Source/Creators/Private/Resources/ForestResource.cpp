@@ -33,21 +33,21 @@ struct FInstanceTransformMatrix
 	}
 
 };
-
-template<typename Tag, typename Tag::type M>
-struct Rob {
-	friend typename Tag::type get(Tag) {
-		return M;
-	}
-};
-
-// tag used to access A::a
-struct A_f {
-	typedef FStaticMeshInstanceData* FStaticMeshInstanceBuffer::*type;
-	friend type get(A_f);
-};
-
-template struct Rob<A_f, &FStaticMeshInstanceBuffer::InstanceData>;
+//
+//template<typename Tag, typename Tag::type M>
+//struct Rob {
+//	friend typename Tag::type get(Tag) {
+//		return M;
+//	}
+//};
+//
+//// tag used to access A::a
+//struct A_f {
+//	typedef TSharedPtr<FStaticMeshInstanceData, ESPMode::ThreadSafe> FStaticMeshInstanceBuffer::*type;
+//	friend type get(A_f);
+//};
+//
+//template struct Rob<A_f, &FStaticMeshInstanceBuffer::InstanceData>;
 
 // Sets default values
 AForestResource::AForestResource()
@@ -65,12 +65,27 @@ void AForestResource::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*FTransform transf;
+	transf.SetIdentity();
+
+	float scaling = 20;
+
+	for (int x = 0; x < 100; x++)
+	{
+		for (int y = 0; y < 200; y++)
+		{
+			transf.SetTranslation(FVector(GetActorLocation().X + (x * scaling), GetActorLocation().Y + (y * scaling), GetActorLocation().Z));
+			transf.SetScale3D(FVector(0.1f, 0.1f, 0.1f));
+			AddTree(transf);
+		}
+	}*/
 }
 
 void AForestResource::AddTree(const FTransform& inTransform)
 {
+	TSharedPtr<FPerInstanceRenderData, ESPMode::ThreadSafe> fds; fds.Get();
 	int count = Trees->GetInstanceCount();
-	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
+	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.GetInstanceData(); //*get(A_f());
 	if (InstanceData && InstanceData->GetNumInstances() > 0)
 	{
 		FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));
@@ -110,13 +125,14 @@ void AForestResource::RemoveTree(int inTreeID)
 	
 	if (count > 0)
 	{
-		// Remove by swap and pop -> Result is already reordered. 
-		// Does not preserve original order (Index of last instance changed)
-		// Way faster than reordering. Might need to update index if saved elsewhere.
-		std::iter_swap(age.begin() + inTreeID, age.end() - 1);
-		age.pop_back();
+		//// Remove by swap and pop -> Result is already reordered. 
+		//// Does not preserve original order (Index of last instance changed)
+		//// Way faster than reordering. Might need to update index if saved elsewhere.
+		//std::iter_swap(age.begin() + inTreeID, age.end() - 1);
+		//age.pop_back();
+		age.erase(age.begin() + inTreeID);
 
-		FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
+	/*	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.GetInstanceData();
 		InstanceData->SwapInstance(inTreeID, count - 1);
 		InstanceData->NullifyInstance(count - 1);
 
@@ -124,7 +140,8 @@ void AForestResource::RemoveTree(int inTreeID)
 
 		Trees->PerInstanceSMData.RemoveAtSwap(inTreeID);
 		Trees->InstanceBodies[inTreeID]->TermBody();
-		Trees->InstanceBodies.RemoveAtSwap(inTreeID);
+		Trees->InstanceBodies.RemoveAtSwap(inTreeID);*/
+		Trees->RemoveInstance(inTreeID);
 
 		TreesToCut.Remove(inTreeID);	
 	}
@@ -132,8 +149,8 @@ void AForestResource::RemoveTree(int inTreeID)
 
 FTreeInstance AForestResource::GetNearestTreeToCut(const FVector& originLocation) const
 {
-	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
-	FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));
+	/*FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.GetInstanceData();
+	FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));*/
 	
 	// Find Nearest Tree Instance
 	int nearestID = -1;
@@ -141,14 +158,17 @@ FTreeInstance AForestResource::GetNearestTreeToCut(const FVector& originLocation
 	
 	for (auto& treeID : TreesToCut)
 	{
+		FTransform transf;
+		Trees->GetInstanceTransform(treeID, transf);
+
 		if (nearestID == -1)
 		{
 			nearestID = treeID;
-			nearestDist = FVector::DistSquared(originLocation, FVector(rarray[treeID]));
+			nearestDist = FVector::DistSquared(originLocation, transf.GetLocation());
 		}
 		else
 		{
-			float currentDist = FVector::DistSquared(originLocation, FVector(rarray[treeID]));
+			float currentDist = FVector::DistSquared(originLocation, transf.GetLocation());
 			if (currentDist < nearestDist)
 			{
 				nearestID = treeID;
@@ -157,21 +177,23 @@ FTreeInstance AForestResource::GetNearestTreeToCut(const FVector& originLocation
 		}
 	}
 
-	return FTreeInstance(nearestID, Trees->GetComponentLocation() + FVector(rarray[nearestID]));
+	FTransform nearestTransf;
+	Trees->GetInstanceTransform(nearestID, nearestTransf);
+	return FTreeInstance(nearestID, Trees->GetComponentLocation() + nearestTransf.GetLocation());
 }
 
 // Called every frame
 void AForestResource::Tick(float DeltaTime)
 {
 	int countBefore = Trees->InstanceReorderTable.Num();
-	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.*get(A_f());
+	FStaticMeshInstanceData* InstanceData = Trees->PerInstanceRenderData->InstanceBuffer.GetInstanceData();
 	if (InstanceData && InstanceData->GetNumInstances() > 0)
 	{
 			FVector4* rarray = const_cast<FVector4*>(reinterpret_cast<const FVector4*>(InstanceData->GetOriginResourceArray()->GetResourceData()));
 			FInstanceTransformMatrix<FFloat16>* itarray =
 				const_cast<FInstanceTransformMatrix<FFloat16>*>(reinterpret_cast<const FInstanceTransformMatrix<FFloat16>*>(InstanceData->GetTransformResourceArray()->GetResourceData()));
 			
-			for (int i = 0; i < (countBefore); i++)
+			for (int i = 0; i < age.size(); i++)//(countBefore); i++)
 			{
 				
 					age[i] += DeltaTime;
@@ -204,24 +226,29 @@ void AForestResource::Tick(float DeltaTime)
 				Trees->PerInstanceSMData[i].Transform.M[3][2] = rarray[Trees->InstanceReorderTable[i]].Z;
 			}*/
 			
+			FTransform tmp;
+
 			for (int i = 0; i < (count); i++)
 			{
 				if (age[i] < 6.f)
 				{
-					rarray[Trees->InstanceReorderTable[i]].Z += 20.f * DeltaTime;
-					// Update existing BodyInstance
-					FTransform tran;
-					tran.SetLocation(FVector(rarray[Trees->InstanceReorderTable[i]].X + Trees->GetComponentLocation().X,
-						rarray[Trees->InstanceReorderTable[i]].Y + Trees->GetComponentLocation().Y, rarray[Trees->InstanceReorderTable[i]].Z + Trees->GetComponentLocation().Z));
-					Trees->InstanceBodies[i]->SetBodyTransform(tran, TeleportFlagToEnum(true));
+					Trees->GetInstanceTransform(i, tmp);
+					tmp.SetLocation(tmp.GetLocation() + FVector(0, 0, 20.f * DeltaTime));
+					Trees->UpdateInstanceTransform(i, tmp, false, false, false);
+					
+					//rarray[i].Z += 20.f * DeltaTime;
+
+					//// Update existing BodyInstance
+					//FTransform tran;
+					//tran.SetLocation(FVector(rarray[i].X + Trees->GetComponentLocation().X,
+					//	rarray[i].Y + Trees->GetComponentLocation().Y, rarray[i].Z + Trees->GetComponentLocation().Z));
+					//Trees->InstanceBodies[i]->SetBodyTransform(tran, TeleportFlagToEnum(true));
+
 				}
 			}
 
-		
-
-			
 			Trees->MarkRenderStateDirty();
-
+		
 	}
 }
 

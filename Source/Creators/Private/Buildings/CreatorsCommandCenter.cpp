@@ -7,7 +7,7 @@
 #include "GroundBuilding.h"
 #include "CreatorsCommandCenter.h"
 #include "Block.h"
-#include <stdlib.h> 
+
 
 // Sets default values
 ACreatorsCommandCenter::ACreatorsCommandCenter()
@@ -23,59 +23,39 @@ ACreatorsCommandCenter::ACreatorsCommandCenter()
 	WidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 40.0f));
 	WidgetComponent->SetVisibility(true);
 
-	RootComponent->SetMobility(EComponentMobility::Static);
+	RootComponent->SetMobility(EComponentMobility::Movable);
 
 	CubeBounds = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeBounds"));
 	CubeBounds->SetupAttachment(RootComponent);
 	CubeBounds->SetVisibility(true);
-	CubeBounds->SetWorldScale3D(FVector(10.1f, 10.1f, 10.1f));
 	CubeBounds->SetMobility(EComponentMobility::Movable);
 	CubeBounds->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>MeshAsset(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
-	BlockAsset = MeshAsset.Object;
-
-	for (int i = 0; i < 9; i++)
-	{
-		UStaticMeshComponent* NewBlock = CreateDefaultSubobject<UStaticMeshComponent>(FName(*("Block" + FString::FromInt(i))));
-		NewBlock->SetupAttachment(RootComponent);
-		NewBlock->SetStaticMesh(BlockAsset);
-		NewBlock->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		NewBlock->SetCollisionResponseToChannel(COLLISION_FLOOR, ECollisionResponse::ECR_Block);
-		NewBlock->SetCollisionResponseToChannel(COLLISION_PANCAMERA, ECollisionResponse::ECR_Block);
-		Blocks.Add(NewBlock);
-	}
+	UStaticMeshComponent* NewBlock = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Block0"));
+	NewBlock->SetupAttachment(RootComponent);
+	NewBlock->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	NewBlock->SetCollisionResponseToChannel(COLLISION_FLOOR, ECollisionResponse::ECR_Block);
+	NewBlock->SetCollisionResponseToChannel(COLLISION_PANCAMERA, ECollisionResponse::ECR_Block);
+	Blocks.Add(NewBlock);
 }
 
 void ACreatorsCommandCenter::OnConstruction(const FTransform& Transform)
 {
 	Super::PostInitializeComponents();
 
-	for (int i = 0; i < 9; i++)
-	{
-		Blocks[i]->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Blocks[i]->SetCollisionResponseToChannel(COLLISION_FLOOR, ECollisionResponse::ECR_Block);
-		Blocks[i]->SetCollisionResponseToChannel(COLLISION_PANCAMERA, ECollisionResponse::ECR_Block);
-		Blocks[i]->SetWorldScale3D(FVector(5.01f, 5.01f, 5.01f));
-	}
+	Blocks[0]->SetWorldScale3D(FVector(5.01f, 5.01f, 5.01f));
+	Blocks[0]->SetStaticMesh(BlockAsset);
+	Blocks[0]->SetMaterial(0, BlockMaterial);
 
 	// 0.01f so that Blocks overlap slightly -> Navigation works this way!
-	const FVector BoxExtends = Blocks[0]->Bounds.BoxExtent * 2.f - 0.01f;
-	const float LocationUnderCenter = -(BoxExtends.Z*0.5f) - Mesh->Bounds.BoxExtent.Z;
+	const FVector BoxExtends = Blocks[0]->Bounds.BoxExtent;
+	const float LocationUnderCenter = -BoxExtends.Z - Mesh->Bounds.BoxExtent.Z;
 
 	Blocks[0]->SetRelativeLocation(FVector(0.f, 0.f, LocationUnderCenter));
-	Blocks[1]->SetRelativeLocation(FVector(BoxExtends.X, 0.f, LocationUnderCenter));
-	Blocks[2]->SetRelativeLocation(FVector(-BoxExtends.X, 0.f, LocationUnderCenter));
-	Blocks[3]->SetRelativeLocation(FVector(0.f, BoxExtends.Y, LocationUnderCenter));
-	Blocks[4]->SetRelativeLocation(FVector(0.f, -BoxExtends.Y, LocationUnderCenter));
-	Blocks[5]->SetRelativeLocation(FVector(BoxExtends.X, BoxExtends.Y, LocationUnderCenter));
-	Blocks[6]->SetRelativeLocation(FVector(-BoxExtends.X, BoxExtends.Y, LocationUnderCenter));
-	Blocks[7]->SetRelativeLocation(FVector(BoxExtends.X, -BoxExtends.Y, LocationUnderCenter));
-	Blocks[8]->SetRelativeLocation(FVector(-BoxExtends.X, -BoxExtends.Y, LocationUnderCenter));
 
-	const FVector ScaleBounds = FVector(5.01f, 5.01f, 5.01f) * 3.f;
+	const FVector ScaleBounds = FVector(5.01f, 5.01f, 10.01f);
 	CubeBounds->SetWorldScale3D(ScaleBounds + 0.1f);
-
+	CubeBounds->SetRelativeLocation(FVector(0.f, 0.f, -Mesh->Bounds.BoxExtent.Z));
 }
 // Called when the game starts or when spawned
 void ACreatorsCommandCenter::BeginPlay()
@@ -199,7 +179,6 @@ void ACreatorsCommandCenter::BlockBuildingModeTick()
 		BuildingToPlace->SetActorLocation(origin + FVector(0.f, -extent.Y * 2.0f - 0.01f, 0.f));
 	}
 
-
 	// Check if current Position is already occupied by another box
 	bool bLeaveBuildingMode = true;
 	FVector ToPlaceLocation = BuildingToPlace->GetActorLocation();
@@ -210,6 +189,8 @@ void ACreatorsCommandCenter::BlockBuildingModeTick()
 
 	if (bLeaveBuildingMode)
 	{
+		BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));
+
 		if (GetWorld()->GetFirstPlayerController()->WasInputKeyJustPressed(EKeys::LeftMouseButton))
 		{
 			const FVector ScaleBounds = CubeBounds->GetComponentScale();
@@ -240,6 +221,7 @@ void ACreatorsCommandCenter::BlockBuildingModeTick()
 	}
 	else
 	{
+		BuildingToPlace->DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.5f));
 		BuildingToPlace->SetActorLocation(WorldOrigin - FVector(0.f, 0.f, Blocks[0]->Bounds.BoxExtent.Z * 0.75f));
 	}
 }
@@ -262,7 +244,7 @@ void ACreatorsCommandCenter::LeaveBuildingMode()
 	{
 		CurrentBuildingMode = BuildingMode::None;
 		BuildingToPlace->SetActorEnableCollision(true);
-		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->bGenerateOverlapEvents = true;
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetGenerateOverlapEvents(true);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionProfileName(FName("BlockAllDynamic"));
 		BuildingToPlace.Reset();
@@ -298,7 +280,7 @@ void ACreatorsCommandCenter::EnterBuildingMode(TSubclassOf<ABuilding> buildingCl
 	if (BuildingToPlace.IsValid())
 	{
 		BuildingToPlace->SetActorEnableCollision(true);
-		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->bGenerateOverlapEvents = true;
+		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetGenerateOverlapEvents(true);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		Cast<UPrimitiveComponent>(BuildingToPlace->GetRootComponent())->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);

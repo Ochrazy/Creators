@@ -25,6 +25,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void  OnConstruction(const FTransform& Transform) override;
+
 	virtual bool OnSelectionLost_Implementation(const FVector& NewPosition, AActor* NewActor) override;
 	virtual bool OnSelectionGained_Implementation() override;
 

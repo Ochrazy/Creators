@@ -15,7 +15,10 @@ ABuilding::ABuilding()
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void  ABuilding::OnConstruction(const FTransform& Transform)
+{
 	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
 	//set paramater with Set***ParamaterValue
 	DynMaterial->SetVectorParameterValue("Overlay", FLinearColor(1.f, 0.f, 0.f, 0.f));

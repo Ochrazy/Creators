@@ -31,9 +31,9 @@ public:
 	/* Building To Place*/
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<ABuilding> BlockClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StaticMeshComponents)
-		TArray<class UStaticMeshComponent*> Blocks;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Cube)
+		TArray<UStaticMeshComponent*> Blocks;
 
 	virtual void  OnConstruction(const FTransform& Transform) override;
 
@@ -65,9 +65,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Cube)
 		class UStaticMeshComponent* CubeBounds;
 
+	UPROPERTY(EditAnywhere, Category = Cube)
+		UStaticMesh* BlockAsset;
+
+	UPROPERTY(EditAnywhere, Category = Cube)
+		UMaterialInterface* BlockMaterial;
+
+	UPROPERTY(EditAnywhere, Category = Cube)
+		UMaterialInterface* BlockMaterial_Overlay;
+
+	UPROPERTY(EditAnywhere, Category = Cube)
+		UMaterialInterface* BlockMaterial_Selected;
+
 private:
 	enum class BuildingMode { None, Normal, Block } CurrentBuildingMode;
-	UStaticMesh* BlockAsset;
 
 	void NormalBuildingModeTick();
 	void BlockBuildingModeTick();
